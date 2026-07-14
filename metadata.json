@@ -1,0 +1,9 @@
+{
+  "name": "prepareAIVF",
+  "description": "An interactive interview platform where you can practice your interview skills with a conversational AI powered by Google Gemini. The application uses your camera and microphone to create a real-time, interactive video and audio experience.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "display-capture"
+  ]
+}
