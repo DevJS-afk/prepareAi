@@ -1,5 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import { GoogleGenAI } from '@google/genai';
 import { supabase } from '../services/firebaseClient';
 import type { SubscriptionTier } from '../types';
@@ -47,7 +47,7 @@ const TEMPLATES: Record<TemplateType, { name: string; desc: string }> = {
 };
 
 const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscriptionTier = 'free', isAdmin = false }) => {
-  // --- Core Data State ---
+  const { t } = useTranslation();
   const [personalInfo, setPersonalInfo] = useState({
     fullName: '',
     email: '',
@@ -62,7 +62,6 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
   const [skills, setSkills] = useState('');
   const [customSections, setCustomSections] = useState<CustomSection[]>([]);
   
-  // --- UI/Generation State ---
   const [generatedCV, setGeneratedCV] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -71,13 +70,11 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
   const [currentCvId, setCurrentCvId] = useState<string | undefined>(cvId);
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('modern');
 
-  // --- Import State ---
   const [isImporting, setIsImporting] = useState(false);
   const [importText, setImportText] = useState('');
   const [importFileBase64, setImportFileBase64] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  // --- ATS Analyzer State ---
   const [showAtsModal, setShowAtsModal] = useState(false);
   const [jobDescription, setJobDescription] = useState('');
   const [atsResult, setAtsResult] = useState<AtsResult | null>(null);
@@ -133,18 +130,16 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
         if (file.type === "application/pdf") {
             reader.onload = (event) => {
                 const base64String = event.target?.result as string;
-                // Strip the Data URL prefix to get raw base64
                 const rawBase64 = base64String.split(',')[1];
                 setImportFileBase64(rawBase64);
-                setImportText(''); // Clear text if PDF is loaded
+                setImportText('');
             };
             reader.readAsDataURL(file);
         } else {
-            // Assume text/markdown/json
             reader.onload = (event) => {
                 const text = event.target?.result as string;
                 setImportText(text);
-                setImportFileBase64(null); // Clear PDF if text is loaded
+                setImportFileBase64(null);
             };
             reader.readAsText(file);
         }
@@ -236,7 +231,6 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
   const handleGenerate = async () => {
     setIsGenerating(true);
     
-    // Simulate generation delay for better UX
     await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
@@ -253,7 +247,6 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
             }).join('');
         };
 
-        // Basic CSS Reset & Common Styles
         const commonStyles = `
             * { box-sizing: border-box; }
             body { margin: 0; padding: 40px; font-size: 11pt; line-height: 1.5; color: #333; background: white; font-family: sans-serif; }
@@ -421,7 +414,6 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
       try {
           const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
           
-          // Construct Resume Context
           const resumeContext = `
             Name: ${personalInfo.fullName}
             Role: ${targetRole}
@@ -486,7 +478,6 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
               return;
           }
 
-          // Check Limits for Free Tier (Only 1 Resume Allowed) - Admins bypass
           if (!currentCvId && subscriptionTier === 'free' && !isAdmin) {
               const { count } = await supabase.from('cvs').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
               if (count && count >= 1) {
@@ -558,7 +549,6 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
         return new Promise(resolve => {
           img.onload = resolve;
           img.onerror = resolve;
-          // Force browser reload/rendering of Base64 image
           const origSrc = img.src;
           img.src = '';
           img.src = origSrc;
@@ -582,7 +572,6 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
   return (
     <div className="w-[90vw] h-[90vh] flex flex-col glass-panel rounded-2xl overflow-hidden animate-fade-in shadow-2xl relative">
         
-        {/* ATS Modal */}
         {showAtsModal && (
             <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
                 <div className="bg-[#1a1a1a] w-full max-w-4xl rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col max-h-[85vh] shadow-2xl overflow-hidden">
@@ -591,7 +580,7 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                             <div className="w-10 h-10 rounded-lg bg-brand-blue/20 flex items-center justify-center text-brand-blue">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">ATS Compatibility Checker</h3>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('CVBuilder.ATSModalTitle')}</h3>
                         </div>
                         <button onClick={() => { setShowAtsModal(false); setAtsResult(null); }} className="text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -599,14 +588,13 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                     </div>
 
                     <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
-                        {/* Input Side */}
                         <div className="w-full md:w-1/2 p-6 flex flex-col border-r border-slate-200 dark:border-white/10">
-                            <p className="text-slate-600 dark:text-gray-400 text-sm mb-4">Paste the job description below. We'll check your current resume data for keywords and relevance.</p>
+                            <p className="text-slate-600 dark:text-gray-400 text-sm mb-4">{t('CVBuilder.ATSDescription')}</p>
                             <textarea 
                                 value={jobDescription}
                                 onChange={(e) => setJobDescription(e.target.value)}
                                 className="flex-1 bg-slate-200/50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-xl p-4 text-slate-900 dark:text-white focus:border-brand-blue outline-none resize-none custom-scrollbar mb-4 text-sm"
-                                placeholder="Paste Job Description here..."
+                                placeholder={t('CVBuilder.PasteJobDescription')}
                             />
                             <button 
                                 onClick={handleScanAts}
@@ -614,14 +602,13 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                                 className="w-full py-3 bg-brand-blue hover:bg-blue-600 text-white font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
                             >
                                 {isScanningAts ? (
-                                    <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Scanning...</>
+                                    <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> {t('CVBuilder.Scanning')}</>
                                 ) : (
-                                    <>Scan & Analyze</>
+                                    <>{t('CVBuilder.ScanAndAnalyze')}</>
                                 )}
                             </button>
                         </div>
 
-                        {/* Result Side */}
                         <div className="w-full md:w-1/2 p-6 bg-slate-200/30 dark:bg-black/20 overflow-y-auto custom-scrollbar">
                             {atsResult ? (
                                 <div className="space-y-6">
@@ -637,18 +624,18 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                                             </svg>
                                             <div className="absolute flex flex-col items-center">
                                                 <span className="text-2xl font-bold text-slate-900 dark:text-white">{atsResult.score}%</span>
-                                                <span className="text-[10px] uppercase text-slate-500 dark:text-gray-500 font-bold">Match</span>
+                                                <span className="text-[10px] uppercase text-slate-500 dark:text-gray-500 font-bold">{t('CVBuilder.Match')}</span>
                                             </div>
                                         </div>
                                         <div className="flex-1">
-                                            <h4 className="text-slate-900 dark:text-white font-bold mb-1">Analysis Summary</h4>
+                                            <h4 className="text-slate-900 dark:text-white font-bold mb-1">{t('CVBuilder.AnalysisSummary')}</h4>
                                             <p className="text-sm text-slate-600 dark:text-gray-400 leading-relaxed">{atsResult.summary}</p>
                                         </div>
                                     </div>
 
                                     {atsResult.missingKeywords.length > 0 && (
                                         <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-                                            <h5 className="text-red-400 font-bold text-xs uppercase tracking-wider mb-3">Missing Keywords</h5>
+                                            <h5 className="text-red-400 font-bold text-xs uppercase tracking-wider mb-3">{t('CVBuilder.MissingKeywords')}</h5>
                                             <div className="flex flex-wrap gap-2">
                                                 {atsResult.missingKeywords.map((kw, i) => (
                                                     <span key={i} className="px-2 py-1 bg-red-500/20 text-red-300 rounded text-xs border border-red-500/20">{kw}</span>
@@ -658,7 +645,7 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                                     )}
 
                                     <div>
-                                        <h5 className="text-brand-blue font-bold text-xs uppercase tracking-wider mb-3">Improvement Plan</h5>
+                                        <h5 className="text-brand-blue font-bold text-xs uppercase tracking-wider mb-3">{t('CVBuilder.ImprovementPlan')}</h5>
                                         <ul className="space-y-3">
                                             {atsResult.suggestions.map((sugg, i) => (
                                                 <li key={i} className="flex gap-3 text-sm text-gray-300 bg-white/5 p-3 rounded-lg border border-slate-200 dark:border-white/5">
@@ -672,7 +659,7 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                             ) : (
                                 <div className="h-full flex flex-col items-center justify-center text-slate-500 dark:text-gray-500 opacity-60">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                                    <p>Results will appear here after scanning</p>
+                                    <p>{t('CVBuilder.NoResults')}</p>
                                 </div>
                             )}
                         </div>
@@ -681,23 +668,22 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
             </div>
         )}
 
-        {/* Import Modal */}
         {isImporting && (
             <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
                 <div className="bg-[#1a1a1a] w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-white/10 p-6 shadow-2xl flex flex-col max-h-[80vh]">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">Import & Improve Existing CV</h3>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('CVBuilder.ImportModalTitle')}</h3>
                         <button onClick={() => setIsImporting(false)} className="text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </div>
-                    <p className="text-slate-600 dark:text-gray-400 text-sm mb-4">Upload a PDF or paste the text content of your current resume below. Our AI will analyze, format, and improve the descriptions for you.</p>
+                    <p className="text-slate-600 dark:text-gray-400 text-sm mb-4">{t('CVBuilder.ImportDescription')}</p>
                     
                     <div className="flex justify-between items-center mb-2">
-                        <label className="text-sm font-semibold text-gray-300">Resume Content</label>
+                        <label className="text-sm font-semibold text-gray-300">{t('CVBuilder.ResumeContent')}</label>
                         <label className="text-xs text-brand-purple hover:text-purple-400 cursor-pointer flex items-center gap-1">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                            Upload File (PDF/TXT)
+                            {t('CVBuilder.UploadFile')}
                             <input type="file" accept=".pdf,.txt,.md,.json" className="hidden" onChange={handleFileUpload} />
                         </label>
                     </div>
@@ -706,14 +692,14 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                         <div className="flex-1 bg-slate-200/50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg p-4 flex items-center justify-center mb-4">
                             <div className="text-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-red-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                                <p className="text-slate-900 dark:text-white font-medium">PDF File Selected</p>
-                                <button onClick={() => setImportFileBase64(null)} className="text-sm text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white underline mt-2">Remove and Paste Text</button>
+                                <p className="text-slate-900 dark:text-white font-medium">{t('CVBuilder.PDFSelected')}</p>
+                                <button onClick={() => setImportFileBase64(null)} className="text-sm text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white underline mt-2">{t('CVBuilder.RemoveAndPaste')}</button>
                             </div>
                         </div>
                     ) : (
                         <textarea 
                             className="flex-1 bg-slate-200/50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg p-4 text-gray-300 focus:border-brand-purple outline-none resize-none mb-4 custom-scrollbar"
-                            placeholder="Paste your resume text here..."
+                            placeholder={t('CVBuilder.PasteYourResumeTextHere')}
                             value={importText}
                             onChange={(e) => setImportText(e.target.value)}
                         />
@@ -726,37 +712,35 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                             disabled={isAnalyzing || (!importText.trim() && !importFileBase64)}
                             className="px-6 py-2 bg-brand-purple hover:bg-purple-600 text-slate-900 dark:text-white rounded-lg font-bold transition-colors disabled:opacity-50"
                         >
-                            {isAnalyzing ? 'Analyzing...' : 'Analyze & Import'}
+                            {isAnalyzing ? t('CVBuilder.Analyzing') : t('CVBuilder.AnalyzeAndImport')}
                         </button>
                     </div>
                 </div>
             </div>
         )}
 
-        {/* Header */}
         <div className="h-16 border-b border-slate-200 dark:border-white/10 bg-slate-200/30 dark:bg-black/20 flex items-center justify-between px-6 shrink-0 backdrop-blur-md">
             <div className="flex items-center gap-4">
                 <button onClick={onBack} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                 </button>
                 <div className="flex flex-col">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-none">{currentCvId ? 'Edit Resume' : 'AI Resume Builder'}</h2>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-none">{currentCvId ? t('CVBuilder.EditResume') : t('CVBuilder.AIResumeBuilder')}</h2>
                     <span className="text-[10px] text-slate-600 dark:text-gray-400 uppercase tracking-widest">{TEMPLATES[selectedTemplate].name} Mode</span>
                 </div>
             </div>
             
             <div className="flex items-center gap-3">
-                 {/* Template Selector */}
                  <div className="relative group">
                      <select 
                         value={selectedTemplate}
                         onChange={(e) => setSelectedTemplate(e.target.value as TemplateType)}
                         className="appearance-none bg-white dark:bg-slate-900/50 hover:bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 rounded-lg pl-3 pr-8 py-2 text-sm font-medium text-slate-900 dark:text-white transition-colors cursor-pointer outline-none focus:border-brand-purple"
                      >
-                         <option value="modern" className="bg-white dark:bg-slate-900 text-white">Modern Tech</option>
-                         <option value="classic" className="bg-white dark:bg-slate-900 text-white">Classic Pro</option>
-                         <option value="creative" className="bg-white dark:bg-slate-900 text-white">Creative</option>
-                         <option value="minimalist" className="bg-white dark:bg-slate-900 text-white">Minimalist</option>
+                         <option value="modern">{t('CVBuilder.ModernTech')}</option>
+                         <option value="classic">{t('CVBuilder.ClassicProfessional')}</option>
+                         <option value="creative">{t('CVBuilder.CreativeStudio')}</option>
+                         <option value="minimalist">{t('CVBuilder.Minimalist')}</option>
                      </select>
                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -768,7 +752,7 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                     className="flex items-center gap-2 px-4 py-2 bg-brand-blue/10 hover:bg-brand-blue/20 border border-brand-blue/30 rounded-lg text-sm font-medium transition-colors text-brand-blue"
                  >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    ATS Check
+                    {t('CVBuilder.ATSCheck')}
                  </button>
 
                  <button 
@@ -776,7 +760,7 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                     className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg text-sm font-medium transition-colors text-gray-300"
                  >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                    Import
+                    {t('CVBuilder.Import')}
                  </button>
                  
                  {generatedCV && (
@@ -786,14 +770,14 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                             disabled={isSaving}
                             className="flex items-center gap-2 px-4 py-2 bg-brand-green/20 hover:bg-brand-green/30 border border-brand-green/50 rounded-lg text-sm font-medium transition-colors text-brand-green"
                         >
-                            {isSaving ? 'Saving...' : (currentCvId ? 'Update' : 'Save')}
+                            {isSaving ? '...' : (currentCvId ? t('CVBuilder.Update') : t('CVBuilder.Save'))}
                         </button>
                         <button 
                             onClick={handlePrint}
                             className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors text-slate-900 dark:text-white"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                            Print
+                            {t('CVBuilder.Print')}
                         </button>
                     </>
                  )}
@@ -805,29 +789,26 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                     {isGenerating ? (
                         <>
                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                         Generating...
+                         {t('CVBuilder.Generating')}
                         </>
                     ) : (
                         <>
                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                         Generate
+                         {t('CVBuilder.Generate')}
                         </>
                     )}
                  </button>
             </div>
         </div>
 
-        {/* Main Content */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-slate-200/70 dark:bg-black/40">
             
-            {/* Input Panel (Left) */}
             <div className="lg:w-[400px] xl:w-[450px] flex flex-col border-r border-slate-200 dark:border-white/5 bg-slate-200/30 dark:bg-black/20 overflow-y-auto custom-scrollbar p-6 space-y-8">
                 
-                {/* Personal Info Section */}
                 <div className="space-y-4">
                     <h3 className="text-sm font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-brand-blue"></span>
-                        Personal Details
+                        {t('CVBuilder.PersonalDetails')}
                     </h3>
                     <div className="flex items-center gap-4 mb-2">
                         <div className="w-16 h-16 rounded-full bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center overflow-hidden shrink-0">
@@ -839,17 +820,17 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                         </div>
                         <div>
                              <label className="block text-xs text-slate-600 dark:text-gray-400 mb-1 cursor-pointer hover:text-slate-900 dark:text-white transition-colors">
-                                 Upload Photo
+                                 {t('CVBuilder.UploadPhoto')}
                                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                              </label>
-                             <p className="text-[10px] text-gray-600">Recommended: Square JPG/PNG</p>
+                             <p className="text-[10px] text-gray-600">{t('CVBuilder.RecommendedSquare')}</p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4">
                         <input 
                             type="text" 
-                            placeholder="Full Name" 
+                            placeholder={t('CVBuilder.FullName')}
                             value={personalInfo.fullName}
                             onChange={(e) => setPersonalInfo({...personalInfo, fullName: e.target.value})}
                             className="bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:ring-1 focus:ring-brand-purple focus:border-brand-purple outline-none transition-all"
@@ -857,14 +838,14 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                          <div className="grid grid-cols-2 gap-3">
                             <input 
                                 type="text" 
-                                placeholder="Email" 
+                                placeholder={t('CVBuilder.Email')}
                                 value={personalInfo.email}
                                 onChange={(e) => setPersonalInfo({...personalInfo, email: e.target.value})}
                                 className="bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:ring-1 focus:ring-brand-purple outline-none"
                             />
                             <input 
                                 type="text" 
-                                placeholder="Phone" 
+                                placeholder={t('CVBuilder.Phone')}
                                 value={personalInfo.phone}
                                 onChange={(e) => setPersonalInfo({...personalInfo, phone: e.target.value})}
                                 className="bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:ring-1 focus:ring-brand-purple outline-none"
@@ -872,14 +853,14 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                         </div>
                         <input 
                             type="text" 
-                            placeholder="Location (City, Country)" 
+                            placeholder={t('CVBuilder.Location')}
                             value={personalInfo.location}
                             onChange={(e) => setPersonalInfo({...personalInfo, location: e.target.value})}
                             className="bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:ring-1 focus:ring-brand-purple outline-none"
                         />
                         <input 
                             type="text" 
-                            placeholder="LinkedIn / Portfolio URL" 
+                            placeholder={t('CVBuilder.LinkedIn')}
                             value={personalInfo.linkedin}
                             onChange={(e) => setPersonalInfo({...personalInfo, linkedin: e.target.value})}
                             className="bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:ring-1 focus:ring-brand-purple outline-none"
@@ -887,68 +868,63 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                     </div>
                 </div>
 
-                {/* Target Role */}
                 <div className="space-y-4">
                      <h3 className="text-sm font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-brand-purple"></span>
-                        Target Role
+                        {t('CVBuilder.TargetRole')}
                     </h3>
                     <input 
                         type="text" 
-                        placeholder="e.g. Senior Frontend Engineer" 
+                        placeholder={t('CVBuilder.TargetRolePlaceholder')}
                         value={targetRole}
                         onChange={(e) => setTargetRole(e.target.value)}
                         className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:ring-1 focus:ring-brand-purple outline-none"
                     />
                 </div>
 
-                {/* Experience */}
                 <div className="space-y-4">
                      <h3 className="text-sm font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-brand-green"></span>
-                        Professional Experience
+                        {t('CVBuilder.ProfessionalExperience')}
                     </h3>
                     <textarea 
-                        placeholder="Paste your work history here. Don't worry about formatting.&#10;&#10;e.g.&#10;Google - Software Engineer (2020-Present)&#10;- Built a scalable API&#10;- Led a team of 5" 
+                        placeholder={t('CVBuilder.ExperiencePlaceholder')}
                         value={experience}
                         onChange={(e) => setExperience(e.target.value)}
                         className="w-full h-40 bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:ring-1 focus:ring-brand-purple outline-none resize-none custom-scrollbar leading-relaxed"
                     />
                 </div>
 
-                 {/* Education */}
                  <div className="space-y-4">
                      <h3 className="text-sm font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-brand-yellow"></span>
-                        Education
+                        {t('CVBuilder.Education')}
                     </h3>
                     <textarea 
-                        placeholder="e.g.&#10;Stanford University&#10;BS Computer Science, 2018" 
+                        placeholder={t('CVBuilder.EducationPlaceholder')}
                         value={education}
                         onChange={(e) => setEducation(e.target.value)}
                         className="w-full h-24 bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:ring-1 focus:ring-brand-purple outline-none resize-none custom-scrollbar"
                     />
                 </div>
 
-                {/* Skills */}
                 <div className="space-y-4">
                      <h3 className="text-sm font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-brand-red"></span>
-                        Skills
+                        {t('CVBuilder.Skills')}
                     </h3>
                     <textarea 
-                        placeholder="e.g. JavaScript, React, Node.js, Project Management, Agile" 
+                        placeholder={t('CVBuilder.SkillsPlaceholder')}
                         value={skills}
                         onChange={(e) => setSkills(e.target.value)}
                         className="w-full h-24 bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:ring-1 focus:ring-brand-purple outline-none resize-none custom-scrollbar"
                     />
                 </div>
 
-                {/* Custom Sections */}
                 <div className="space-y-4 border-t border-slate-200 dark:border-white/5 pt-4">
                     <h3 className="text-sm font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-white"></span>
-                        Additional Sections
+                        {t('CVBuilder.AdditionalSections')}
                     </h3>
                     
                     {customSections.map((section) => (
@@ -957,13 +933,13 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                                 type="text" 
                                 value={section.title}
                                 onChange={(e) => handleUpdateSection(section.id, 'title', e.target.value)}
-                                placeholder="Section Title (e.g. Projects, Languages)"
+                                placeholder={t('CVBuilder.SectionTitlePlaceholder')}
                                 className="w-full bg-transparent border-b border-slate-200 dark:border-white/10 px-2 py-1 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-600 focus:border-brand-purple outline-none"
                             />
                             <textarea 
                                 value={section.content}
                                 onChange={(e) => handleUpdateSection(section.id, 'content', e.target.value)}
-                                placeholder="Details for this section..."
+                                placeholder={t('CVBuilder.SectionContentPlaceholder')}
                                 className="w-full h-20 bg-transparent px-2 py-1 text-sm text-gray-300 placeholder-slate-400 dark:placeholder-gray-600 outline-none resize-none"
                             />
                             <button 
@@ -981,15 +957,13 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                         className="w-full py-2 border border-dashed border-gray-600 rounded-lg text-slate-600 dark:text-gray-400 text-sm hover:text-slate-900 dark:text-white hover:border-gray-400 transition-colors flex items-center justify-center gap-2"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                        Add Custom Section
+                        {t('CVBuilder.AddCustomSection')}
                     </button>
                 </div>
             </div>
 
-            {/* Preview Panel (Right) */}
             <div className="flex-1 bg-[#1a1a1a] p-8 overflow-y-auto flex justify-center items-start custom-scrollbar relative">
                 
-                {/* Zoom Controls */}
                 {generatedCV && (
                     <div className="absolute top-6 right-6 z-10 flex items-center gap-2 bg-black/60 backdrop-blur-md p-1.5 rounded-lg border border-slate-200 dark:border-white/10 shadow-lg">
                         <button onClick={() => setZoom(z => Math.max(0.3, z - 0.1))} className="p-1.5 hover:bg-white/10 rounded text-slate-900 dark:text-white transition-colors" title="Zoom Out">
@@ -1020,8 +994,8 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                         </div>
-                        <p className="text-lg font-medium">Your resume preview will appear here</p>
-                        <p className="text-sm">Select a template, fill details, and click Generate</p>
+                        <p className="text-lg font-medium">{t('CVBuilder.PreviewText')}</p>
+                        <p className="text-sm">{t('CVBuilder.PreviewSubtext')}</p>
                     </div>
                 )}
             </div>

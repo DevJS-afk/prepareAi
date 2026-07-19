@@ -1,0 +1,15 @@
+{
+  "AboutUs": {
+    "back_to_home": "Back to Home",
+    "our_mission": "Our Mission",
+    "mission_intro": "At <1>prepareAI</1>, we believe that everyone deserves the chance to land their dream job. The interview process is often stressful, opaque, and intimidating. We set out to change that by democratizing access to high-quality interview coaching.",
+    "why_we_built_this": "Why We Built This",
+    "why_description_1": "Traditional mock interviews are expensive or hard to schedule. Static lists of \"top 10 interview questions\" don't prepare you for the pressure of a real conversation.",
+    "why_description_2": "By leveraging the power of <1>Google's Gemini 2.0 API</1>, we've created an intelligent, adaptive interviewer that is available 24/7. It doesn't just ask questions; it listens to your tone, evaluates your answers, and provides actionable feedback to help you grow.",
+    "the_team": "The Team",
+    "team_description": "prepareAI is powered by <1>DevJs</1>, a team of passionate developers dedicated to building tools that empower individuals. We combine cutting-edge AI research with intuitive UX design to create software that feels like magic.",
+    "technology": "Technology",
+    "tech_description": "Our platform utilizes the latest advancements in multimodal AI. We use <1>Gemini 2.5 Flash</1> for reasoning and feedback generation, and the <3>Live API</3> for low-latency, natural voice interaction.",
+    "join_us": "Join Us Today"
+  }
+}

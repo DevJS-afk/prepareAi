@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
+import { useTranslation, Trans } from 'react-i18next';
 
 interface EmotionTrackerProps {
   videoElement: HTMLVideoElement | null;
@@ -20,12 +21,12 @@ export const EmotionTracker: React.FC<EmotionTrackerProps> = ({
   aiStatus,
   onConfidenceUpdate,
 }) => {
+  const { t } = useTranslation();
   const [motionIntensity, setMotionIntensity] = useState(0);
   const [confidence, setConfidence] = useState(85);
   const [engagement, setEngagement] = useState(88);
   const [primaryState, setPrimaryState] = useState<'focused' | 'calm' | 'expressive' | 'reflective' | 'fidgety'>('focused');
   
-  // Historical data for Sparkline
   const [history, setHistory] = useState<MetricHistory[]>([
     { confidence: 85, engagement: 88, motion: 5 },
     { confidence: 85, engagement: 88, motion: 6 },
@@ -37,7 +38,6 @@ export const EmotionTracker: React.FC<EmotionTrackerProps> = ({
   useEffect(() => {
     if (!videoElement) return;
 
-    // Create offscreen canvas for computer vision processing
     const canvas = document.createElement('canvas');
     canvas.width = 40;
     canvas.height = 40;
@@ -50,7 +50,6 @@ export const EmotionTracker: React.FC<EmotionTrackerProps> = ({
       if (!ctx) return;
 
       try {
-        // Draw the current video frame into the small 40x40 canvas
         ctx.drawImage(videoElement, 0, 0, 40, 40);
         const imgData = ctx.getImageData(0, 0, 40, 40);
         const pixels = imgData.data;
@@ -59,24 +58,19 @@ export const EmotionTracker: React.FC<EmotionTrackerProps> = ({
           let totalDiff = 0;
           let pixelCount = 0;
 
-          // Sample pixels (every 4th pixel to optimize performance and prevent CPU load)
           for (let i = 0; i < pixels.length; i += 16) {
             const rDiff = Math.abs(pixels[i] - prevFramePixels.current[i]);
             const gDiff = Math.abs(pixels[i + 1] - prevFramePixels.current[i + 1]);
             const bDiff = Math.abs(pixels[i + 2] - prevFramePixels.current[i + 2]);
             
-            // Average luminance delta
             const diff = (rDiff + gDiff + bDiff) / 3;
             totalDiff += diff;
             pixelCount++;
           }
 
           const avgDiff = totalDiff / pixelCount;
-          
-          // Map average delta to a motion score 0-100 (cap at a reasonable max change)
           const rawMotion = Math.min(100, (avgDiff / 32) * 100);
           
-          // Smooth the motion signal using a moving average
           setMotionIntensity(prev => {
             const smoothed = prev * 0.4 + rawMotion * 0.6;
             return Math.round(smoothed * 10) / 10;
@@ -84,12 +78,9 @@ export const EmotionTracker: React.FC<EmotionTrackerProps> = ({
         }
 
         prevFramePixels.current = pixels;
-      } catch (err) {
-        // Handle cross-origin canvas tracking safety silently
-      }
+      } catch (err) {}
     };
 
-    // Process at 5Hz (every 200ms) for high-fidelity responsive feedback with low CPU impact
     intervalId = window.setInterval(processFrame, 200);
 
     return () => {
@@ -97,29 +88,24 @@ export const EmotionTracker: React.FC<EmotionTrackerProps> = ({
     };
   }, [videoElement]);
 
-  // Handle high-level state machine mapping based on real motion + conversational state
   useEffect(() => {
     let targetConfidence = 85;
     let targetEngagement = 88;
     let state: 'focused' | 'calm' | 'expressive' | 'reflective' | 'fidgety' = 'focused';
 
     if (motionIntensity > 22) {
-      // High motion/fidgeting
       state = 'fidgety';
       targetConfidence = Math.max(62, confidence - 3);
       targetEngagement = Math.min(95, engagement + 1);
     } else if (motionIntensity > 8) {
-      // Steady expressive gestures
       state = 'expressive';
       targetConfidence = Math.min(98, confidence + 2);
       targetEngagement = Math.min(98, engagement + 2);
     } else if (motionIntensity > 2) {
-      // Natural focus and listening posture
       state = 'focused';
       targetConfidence = Math.min(95, confidence + 0.5);
       targetEngagement = Math.min(92, engagement + 0.5);
     } else {
-      // Very still (either reflecting or very passive)
       if (aiStatus === 'listening') {
         state = 'reflective';
         targetConfidence = Math.max(80, confidence - 0.5);
@@ -131,13 +117,11 @@ export const EmotionTracker: React.FC<EmotionTrackerProps> = ({
       }
     }
 
-    // Speak boost
     if (aiStatus === 'listening' && state !== 'fidgety') {
       targetEngagement = Math.min(99, targetEngagement + 5);
       targetConfidence = Math.min(97, targetConfidence + 2);
     }
 
-    // Smooth state transitions
     const timer = setTimeout(() => {
       setConfidence(prev => {
         const step = (targetConfidence - prev) * 0.15;
@@ -157,7 +141,6 @@ export const EmotionTracker: React.FC<EmotionTrackerProps> = ({
     return () => clearTimeout(timer);
   }, [motionIntensity, aiStatus]);
 
-  // Update history buffer for sparkline tracking
   useEffect(() => {
     const historyTimer = setInterval(() => {
       setHistory(prev => {
@@ -173,32 +156,31 @@ export const EmotionTracker: React.FC<EmotionTrackerProps> = ({
     return () => clearInterval(historyTimer);
   }, [confidence, engagement, motionIntensity]);
 
-  // Label configuration for different states
   const stateConfig = {
     focused: {
-      label: 'Focused Focus',
+      label: t('EmotionTracker.state_focused_label'),
       color: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300',
-      description: 'Your posture is highly aligned and attentive. Displaying solid focus.',
+      description: t('EmotionTracker.state_focused_desc'),
     },
     calm: {
-      label: 'Poised & Calm',
+      label: t('EmotionTracker.state_calm_label'),
       color: 'bg-teal-500/15 border-teal-500/30 text-teal-300',
-      description: 'Excellent stillness. Projecting high composure and control.',
+      description: t('EmotionTracker.state_calm_desc'),
     },
     expressive: {
-      label: 'Expressive Delivery',
+      label: t('EmotionTracker.state_expressive_label'),
       color: 'bg-blue-500/15 border-blue-500/30 text-blue-300',
-      description: 'Natural hand & facial gestures detected. Strongly engaging presentation.',
+      description: t('EmotionTracker.state_expressive_desc'),
     },
     reflective: {
-      label: 'Cognitive Reflection',
+      label: t('EmotionTracker.state_reflective_label'),
       color: 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300',
-      description: 'Composed posture. Analyzing thoughts to prepare response.',
+      description: t('EmotionTracker.state_reflective_desc'),
     },
     fidgety: {
-      label: 'Nervous Micro-movements',
+      label: t('EmotionTracker.state_fidgety_label'),
       color: 'bg-amber-500/15 border-amber-500/30 text-amber-300',
-      description: 'Rapid motion detected. Steady your breathing and posture to anchor delivery.',
+      description: t('EmotionTracker.state_fidgety_desc'),
     },
   }[primaryState];
 
@@ -207,21 +189,19 @@ export const EmotionTracker: React.FC<EmotionTrackerProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 bg-brand-blue rounded-full animate-ping"></div>
-          <span className="text-[10px] font-mono font-bold text-gray-400 tracking-wider uppercase">Kinesics Analytics HUD</span>
+          <span className="text-[10px] font-mono font-bold text-gray-400 tracking-wider uppercase">{t('EmotionTracker.kinesics_analytics')}</span>
         </div>
         <div className="text-[10px] font-mono text-gray-500">
-          {isRecording ? '● RECORDING ACTIVE' : 'REALTIME MODEL ACTIVE'}
+          {isRecording ? t('EmotionTracker.status_recording') : t('EmotionTracker.status_active')}
         </div>
       </div>
 
-      {/* Main Stats Rows */}
       <div className="grid grid-cols-2 gap-4">
-        {/* Confidence Meter */}
         <div className="bg-white/5 border border-white/5 rounded-lg p-3 flex flex-col gap-1">
-          <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Confidence Score</div>
+          <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('EmotionTracker.confidence_score')}</div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-2xl font-bold font-sans text-white">{Math.round(confidence)}%</span>
-            <span className="text-[10px] text-brand-green font-mono">▲ Stable</span>
+            <span className="text-[10px] text-brand-green font-mono">{t('EmotionTracker.stable')}</span>
           </div>
           <div className="w-full bg-gray-800 rounded-full h-1 mt-1.5 overflow-hidden">
             <motion.div 
@@ -233,12 +213,11 @@ export const EmotionTracker: React.FC<EmotionTrackerProps> = ({
           </div>
         </div>
 
-        {/* Engagement Meter */}
         <div className="bg-white/5 border border-white/5 rounded-lg p-3 flex flex-col gap-1">
-          <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Engagement Level</div>
+          <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('EmotionTracker.engagement_level')}</div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-2xl font-bold font-sans text-white">{Math.round(engagement)}%</span>
-            <span className="text-[10px] text-brand-blue font-mono">Active</span>
+            <span className="text-[10px] text-brand-blue font-mono">{t('EmotionTracker.active')}</span>
           </div>
           <div className="w-full bg-gray-800 rounded-full h-1 mt-1.5 overflow-hidden">
             <motion.div 
@@ -251,21 +230,19 @@ export const EmotionTracker: React.FC<EmotionTrackerProps> = ({
         </div>
       </div>
 
-      {/* Current Expression/Posture State badge */}
       <div className={`p-3 rounded-lg border flex flex-col gap-1 transition-all duration-300 ${stateConfig.color}`}>
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-widest">Postural Stance</span>
-          <span className="text-[10px] font-mono opacity-80">Kinesics Intensity: {motionIntensity}%</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest">{t('EmotionTracker.postural_stance')}</span>
+          <span className="text-[10px] font-mono opacity-80">{t('EmotionTracker.kinesics_intensity', { intensity: motionIntensity })}</span>
         </div>
         <div className="text-sm font-bold mt-0.5">{stateConfig.label}</div>
         <p className="text-xs leading-relaxed opacity-90 mt-1">{stateConfig.description}</p>
       </div>
 
-      {/* Live Motion Wave Sparkline */}
       <div className="bg-black/40 rounded-lg p-3 border border-white/5 flex flex-col gap-2">
         <div className="flex justify-between items-center text-[10px] font-mono text-gray-500">
-          <span>Engagement Sparkline (24s)</span>
-          <span>Motion Spark</span>
+          <span>{t('EmotionTracker.engagement_sparkline')}</span>
+          <span>{t('EmotionTracker.motion_spark')}</span>
         </div>
         <div className="h-8 flex items-end gap-0.5 px-1 relative">
           {history.map((h, i) => {
@@ -284,7 +261,7 @@ export const EmotionTracker: React.FC<EmotionTrackerProps> = ({
           })}
           {history.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center text-[10px] text-gray-600 font-mono italic">
-              Awaiting signal telemetry...
+              {t('EmotionTracker.awaiting_signal')}
             </div>
           )}
         </div>

@@ -1,5 +1,5 @@
-
 import React, { useEffect, useState, useCallback } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import { supabase } from '../services/firebaseClient';
 import type { Role } from '../types';
 
@@ -8,6 +8,7 @@ interface AdminDashboardProps {
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -15,10 +16,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
     totalCVs: 0,
     totalPortfolios: 0,
   });
-  const [users, setUsers] = useState<any[]>([]); // Using any for extended profile with email
+  const [users, setUsers] = useState<any[]>([]); 
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalUsersCount, setTotalUsersCount] = useState(0);
@@ -49,7 +49,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
     }
   }, [itemsPerPage]);
 
-  // Debounced Search & Pagination Effect
   useEffect(() => {
       const timer = setTimeout(() => {
           fetchUsers(searchQuery, currentPage);
@@ -63,7 +62,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       if (!supabase) return;
       setLoading(true);
       try {
-        // Fetch Stats
         const { count: userCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
         const { count: interviewCount } = await supabase.from('interviews').select('*', { count: 'exact', head: true });
         const { count: cvCount } = await supabase.from('cvs').select('*', { count: 'exact', head: true });
@@ -75,9 +73,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
           totalCVs: cvCount || 0,
           totalPortfolios: pfCount || 0,
         });
-
-        // Initial User Fetch handled by the debounce effect on mount since searchQuery is ''
-
       } catch (error) {
         console.error("Admin fetch error:", error);
       } finally {
@@ -90,7 +85,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
 
   const handleRoleChange = async (userId: string, newRole: Role) => {
       if (!supabase) return;
-      // Optimistic update
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole, is_admin: newRole === 'admin' } : u));
       
       try {
@@ -101,21 +95,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
           const { error } = await supabase.from('profiles').update(updates).eq('id', userId);
           if (error) throw error;
       } catch (err: any) {
-          alert("Failed to update role: " + err.message);
-          fetchUsers(searchQuery, currentPage); // Revert on error
+          alert(t('AdminDashboard.alertFailedRole', { message: err.message }));
+          fetchUsers(searchQuery, currentPage);
       }
   };
   
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setSearchQuery(e.target.value);
-      setCurrentPage(1); // Reset to first page on search
+      setCurrentPage(1);
   };
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh]">
         <div className="w-12 h-12 border-4 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 text-slate-600 dark:text-gray-400">Loading Dashboard...</p>
+        <p className="mt-4 text-slate-600 dark:text-gray-400">{t('AdminDashboard.loading')}</p>
       </div>
     );
   }
@@ -123,50 +117,45 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   return (
     <div className="w-full px-6 space-y-8 animate-fade-in pb-12">
       
-      {/* Header */}
       <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={onBack} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Admin Dashboard</h2>
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white">{t('AdminDashboard.adminDashboard')}</h2>
           </div>
           <div className="px-3 py-1 bg-brand-red/20 border border-brand-red/50 rounded-full text-brand-red text-xs font-bold uppercase tracking-wider">
-              Super Admin
+              {t('AdminDashboard.superAdmin')}
           </div>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="glass-panel p-6 rounded-xl border-l-4 border-l-brand-blue">
-              <p className="text-slate-600 dark:text-gray-400 text-sm uppercase font-semibold">Total Users</p>
+              <p className="text-slate-600 dark:text-gray-400 text-sm uppercase font-semibold">{t('AdminDashboard.totalUsers')}</p>
               <h3 className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{stats.totalUsers}</h3>
           </div>
           <div className="glass-panel p-6 rounded-xl border-l-4 border-l-brand-green">
-              <p className="text-slate-600 dark:text-gray-400 text-sm uppercase font-semibold">Interviews Conducted</p>
+              <p className="text-slate-600 dark:text-gray-400 text-sm uppercase font-semibold">{t('AdminDashboard.interviewsConducted')}</p>
               <h3 className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{stats.totalInterviews}</h3>
           </div>
           <div className="glass-panel p-6 rounded-xl border-l-4 border-l-brand-purple">
-              <p className="text-slate-600 dark:text-gray-400 text-sm uppercase font-semibold">CVs Created</p>
+              <p className="text-slate-600 dark:text-gray-400 text-sm uppercase font-semibold">{t('AdminDashboard.cvsCreated')}</p>
               <h3 className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{stats.totalCVs}</h3>
           </div>
           <div className="glass-panel p-6 rounded-xl border-l-4 border-l-brand-yellow">
-              <p className="text-slate-600 dark:text-gray-400 text-sm uppercase font-semibold">Portfolios Built</p>
+              <p className="text-slate-600 dark:text-gray-400 text-sm uppercase font-semibold">{t('AdminDashboard.portfoliosBuilt')}</p>
               <h3 className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{stats.totalPortfolios}</h3>
           </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
-          {/* User Management */}
           <div className="glass-panel rounded-xl overflow-hidden col-span-1 lg:col-span-2">
               <div className="p-6 border-b border-slate-200 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">User Management</h3>
-                      <div className="text-xs text-slate-500 dark:text-gray-500">Managing {users.length} users</div>
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('AdminDashboard.userManagement')}</h3>
+                      <div className="text-xs text-slate-500 dark:text-gray-500">{t('AdminDashboard.managingUsers', { count: users.length })}</div>
                   </div>
                   
-                  {/* Search Bar */}
                   <div className="relative w-full sm:w-64">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <svg className="h-4 w-4 text-slate-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -178,7 +167,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                           value={searchQuery}
                           onChange={handleSearchChange}
                           className="w-full bg-slate-200/50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-slate-900 dark:text-white focus:ring-1 focus:ring-brand-blue outline-none placeholder-slate-400 dark:placeholder-gray-500 transition-all"
-                          placeholder="Search name or email..."
+                          placeholder={t('AdminDashboard.searchPlaceholder')}
                       />
                   </div>
               </div>
@@ -187,10 +176,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                   <table className="w-full text-sm text-left text-slate-600 dark:text-gray-400">
                       <thead className="text-xs text-slate-500 dark:text-gray-500 uppercase bg-slate-200/30 dark:bg-black/20 sticky top-0 z-10">
                           <tr>
-                              <th className="px-6 py-3">User</th>
-                              <th className="px-6 py-3">Role</th>
-                              <th className="px-6 py-3 text-center">Actions</th>
-                              <th className="px-6 py-3 text-right">Last Active</th>
+                              <th className="px-6 py-3">{t('AdminDashboard.tableHeaderUser')}</th>
+                              <th className="px-6 py-3">{t('AdminDashboard.tableHeaderRole')}</th>
+                              <th className="px-6 py-3 text-center">{t('AdminDashboard.tableHeaderActions')}</th>
+                              <th className="px-6 py-3 text-right">{t('AdminDashboard.tableHeaderLastActive')}</th>
                           </tr>
                       </thead>
                       <tbody>
@@ -206,8 +195,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                                             )}
                                         </div>
                                         <div>
-                                            <div className="text-base font-bold text-slate-900 dark:text-white">{user.email || 'No Email'}</div>
-                                            <div className="text-xs text-slate-600 dark:text-gray-400">{user.full_name || 'Anonymous'}</div>
+                                            <div className="text-base font-bold text-slate-900 dark:text-white">{user.email || t('AdminDashboard.noEmail')}</div>
+                                            <div className="text-xs text-slate-600 dark:text-gray-400">{user.full_name || t('AdminDashboard.anonymous')}</div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
@@ -217,7 +206,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                                             user.role === 'candidate' ? 'bg-brand-green/10 text-brand-green' :
                                             'bg-gray-700/50 text-gray-300'}
                                         `}>
-                                            {user.role || (user.is_admin ? 'admin' : 'user')}
+                                            {user.role || (user.is_admin ? t('AdminDashboard.roleAdmin') : t('AdminDashboard.roleUser'))}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-center">
@@ -226,10 +215,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                                             onChange={(e) => handleRoleChange(user.id, e.target.value as Role)}
                                             className="bg-slate-200/70 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-brand-blue outline-none cursor-pointer"
                                         >
-                                            <option value="user" className="bg-slate-100 dark:bg-slate-900 text-white">User</option>
-                                            <option value="interviewer" className="bg-slate-100 dark:bg-slate-900 text-white">Interviewer</option>
-                                            <option value="candidate" className="bg-slate-100 dark:bg-slate-900 text-white">Candidate</option>
-                                            <option value="admin" className="bg-slate-100 dark:bg-slate-900 text-white">Admin</option>
+                                            <option value="user" className="bg-slate-100 dark:bg-slate-900 text-white">{t('AdminDashboard.roleUser')}</option>
+                                            <option value="interviewer" className="bg-slate-100 dark:bg-slate-900 text-white">{t('AdminDashboard.roleInterviewer')}</option>
+                                            <option value="candidate" className="bg-slate-100 dark:bg-slate-900 text-white">{t('AdminDashboard.roleCandidate')}</option>
+                                            <option value="admin" className="bg-slate-100 dark:bg-slate-900 text-white">{t('AdminDashboard.roleAdmin')}</option>
                                         </select>
                                     </td>
                                     <td className="px-6 py-4 text-right">{user.updated_at ? new Date(user.updated_at).toLocaleDateString() : 'N/A'}</td>
@@ -238,7 +227,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                           ) : (
                               <tr>
                                   <td colSpan={4} className="px-6 py-8 text-center text-slate-500 dark:text-gray-500">
-                                      No users found matching "{searchQuery}"
+                                      {t('AdminDashboard.noUsersFound', { query: searchQuery })}
                                   </td>
                               </tr>
                           )}
@@ -246,11 +235,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                   </table>
               </div>
               
-              {/* Pagination Controls */}
               <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-slate-200 dark:border-white/5 bg-slate-200/30 dark:bg-black/20 gap-4">
                   <div className="flex items-center gap-4">
                       <div className="text-sm text-slate-600 dark:text-gray-400">
-                          Showing <span className="text-slate-900 dark:text-white font-medium">{totalUsersCount > 0 ? ((currentPage - 1) * itemsPerPage) + 1 : 0}</span> to <span className="text-slate-900 dark:text-white font-medium">{Math.min(currentPage * itemsPerPage, totalUsersCount)}</span> of <span className="text-slate-900 dark:text-white font-medium">{totalUsersCount}</span> users
+                          <Trans i18nKey="AdminDashboard.paginationShowing" values={{
+                              start: totalUsersCount > 0 ? ((currentPage - 1) * itemsPerPage) + 1 : 0,
+                              end: Math.min(currentPage * itemsPerPage, totalUsersCount),
+                              total: totalUsersCount
+                          }} components={{ bold: <span className="text-slate-900 dark:text-white font-medium" /> }} />
                       </div>
                       
                       <div className="flex items-center gap-2">
@@ -262,17 +254,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                             }}
                             className="bg-slate-200/70 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-brand-blue outline-none cursor-pointer"
                         >
-                            <option value={10} className="bg-slate-100 dark:bg-slate-900 text-white">10 / page</option>
-                            <option value={20} className="bg-slate-100 dark:bg-slate-900 text-white">20 / page</option>
-                            <option value={50} className="bg-slate-100 dark:bg-slate-900 text-white">50 / page</option>
-                            <option value={100} className="bg-slate-100 dark:bg-slate-900 text-white">100 / page</option>
+                            <option value={10} className="bg-slate-100 dark:bg-slate-900 text-white">{t('AdminDashboard.perPage10')}</option>
+                            <option value={20} className="bg-slate-100 dark:bg-slate-900 text-white">{t('AdminDashboard.perPage20')}</option>
+                            <option value={50} className="bg-slate-100 dark:bg-slate-900 text-white">{t('AdminDashboard.perPage50')}</option>
+                            <option value={100} className="bg-slate-100 dark:bg-slate-900 text-white">{t('AdminDashboard.perPage100')}</option>
                         </select>
                       </div>
                   </div>
 
                   <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2">
-                           <span className="text-xs text-slate-600 dark:text-gray-400">Page</span>
+                           <span className="text-xs text-slate-600 dark:text-gray-400">{t('AdminDashboard.pageLabel')}</span>
                            <input
                               type="number"
                               min={1}
@@ -286,7 +278,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                               }}
                               className="w-12 bg-slate-200/50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-brand-blue outline-none text-center"
                            />
-                           <span className="text-xs text-slate-600 dark:text-gray-400">of {Math.ceil(totalUsersCount / itemsPerPage) || 1}</span>
+                           <span className="text-xs text-slate-600 dark:text-gray-400">{t('AdminDashboard.ofTotal', { total: Math.ceil(totalUsersCount / itemsPerPage) || 1 })}</span>
                       </div>
 
                       <div className="flex gap-2">
@@ -295,14 +287,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                               disabled={currentPage === 1}
                               className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-slate-900 dark:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors border border-slate-200 dark:border-white/5"
                           >
-                              Previous
+                              {t('AdminDashboard.previous')}
                           </button>
                           <button
                               onClick={() => setCurrentPage(p => p + 1)}
                               disabled={currentPage * itemsPerPage >= totalUsersCount}
                               className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-slate-900 dark:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors border border-slate-200 dark:border-white/5"
                           >
-                              Next
+                              {t('AdminDashboard.next')}
                           </button>
                       </div>
                   </div>
