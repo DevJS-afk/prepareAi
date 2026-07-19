@@ -1,0 +1,141 @@
+{
+  "entities": {
+    "profile": {
+      "title": "UserProfile",
+      "description": "User account profile details and subscription status",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique user ID" },
+        "email": { "type": "string", "description": "User email address" },
+        "full_name": { "type": "string", "maxLength": 100, "description": "User real display name" },
+        "pronouns": { "type": "string", "maxLength": 20, "description": "Preferred pronouns" },
+        "avatar_url": { "type": "string", "maxLength": 1000000, "description": "Avatar URL or Base64 data string" },
+        "role": { "type": "string", "enum": ["user", "admin", "interviewer", "candidate"], "description": "Platform role" },
+        "is_admin": { "type": "boolean", "description": "Whether user is a system admin" },
+        "subscription_tier": { "type": "string", "enum": ["free", "pro", "recruiter"], "description": "Current subscription plan" },
+        "updated_at": { "type": "string", "description": "Last update timestamp" }
+      },
+      "required": ["id", "email", "role"]
+    },
+    "interview": {
+      "title": "InterviewSession",
+      "description": "A record of an interview session",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string", "description": "The candidate ID who completed the session" },
+        "config": { "type": "object", "description": "Pre-configured interview topic and details" },
+        "status": { "type": "string", "enum": ["NotStarted", "InProgress", "Finished"], "description": "The current progress status" },
+        "transcription": { "type": "array", "description": "Complete transcription dialog items" },
+        "feedback": { "type": "array", "description": "Real-time dialog feedback entries" },
+        "report": { "type": "object", "description": "AI-generated evaluation report" },
+        "resources": { "type": "array", "description": "Suggested materials or tools to study" },
+        "created_at": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["user_id", "status"]
+    },
+    "cv": {
+      "title": "Resume",
+      "description": "A generated and formatted ATS resume doc",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string", "description": "Owner ID" },
+        "title": { "type": "string", "maxLength": 200, "description": "Title or display name for the document" },
+        "content": { "type": "string", "maxLength": 500000, "description": "Complete HTML template with parsed CV structure" },
+        "data": { "type": "object", "description": "Raw fields (personalInfo, experience, etc.) used to generate HTML" },
+        "created_at": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["user_id", "title", "content"]
+    },
+    "motivation_letter": {
+      "title": "MotivationLetter",
+      "description": "An AI-generated cover letter targeting a job role",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string", "description": "Owner ID" },
+        "title": { "type": "string", "maxLength": 200, "description": "Document title" },
+        "job_title": { "type": "string", "maxLength": 200, "description": "Target job title" },
+        "company": { "type": "string", "maxLength": 200, "description": "Target company" },
+        "content": { "type": "string", "maxLength": 100000, "description": "Full text copy of the letter" },
+        "created_at": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["user_id", "title", "content"]
+    },
+    "portfolio": {
+      "title": "Portfolio",
+      "description": "Stunning single-page portfolio webpage",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string", "description": "Owner ID" },
+        "title": { "type": "string", "maxLength": 200, "description": "Webpage title" },
+        "content": { "type": "string", "maxLength": 500000, "description": "HTML layout contents" },
+        "data": { "type": "object", "description": "Parsed items mapping profile, links, projects, and styling options" },
+        "created_at": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["user_id", "title", "content"]
+    },
+    "invite": {
+      "title": "Invite",
+      "description": "An invitation from a recruiter to a candidate to complete an assessment",
+      "type": "object",
+      "properties": {
+        "interviewer_id": { "type": "string", "description": "The recruiter user ID" },
+        "email": { "type": "string", "description": "Recipient candidate email" },
+        "token": { "type": "string", "maxLength": 128, "description": "Secure query parameter token" },
+        "status": { "type": "string", "enum": ["pending", "accepted"], "description": "Invite response state" },
+        "config": { "type": "object", "description": "Designated interview setup assigned to this token" },
+        "candidate_id": { "type": "string", "description": "Matched registered user ID once accepted" },
+        "created_at": { "type": "string", "description": "Time the invitation was generated" }
+      },
+      "required": ["interviewer_id", "email", "token", "status"]
+    },
+    "job_offer": {
+      "title": "JobOffer",
+      "description": "A job offer posted by a recruiter",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier of the job offer" },
+        "recruiter_id": { "type": "string", "description": "Recruiter's User ID" },
+        "title": { "type": "string", "maxLength": 200, "description": "Job title" },
+        "company": { "type": "string", "maxLength": 200, "description": "Company name" },
+        "location": { "type": "string", "maxLength": 200, "description": "Job location or 'Remote'" },
+        "description": { "type": "string", "maxLength": 100000, "description": "Full job description text" },
+        "salary": { "type": "string", "maxLength": 100, "description": "Salary range or details" },
+        "experienceLevel": { "type": "string", "description": "Required experience level" },
+        "jobType": { "type": "string", "description": "Job type" },
+        "url": { "type": "string", "maxLength": 1000, "description": "Application URL" },
+        "created_at": { "type": "string", "description": "Timestamp of creation" }
+      },
+      "required": ["recruiter_id", "title", "company", "location", "description"]
+    }
+  },
+  "firestore": {
+    "/profiles/{userId}": {
+      "schema": "profile",
+      "description": "Collection of user profiles keyed by user auth UID"
+    },
+    "/interviews/{interviewId}": {
+      "schema": "interview",
+      "description": "Interview session records and evaluations"
+    },
+    "/cvs/{cvId}": {
+      "schema": "cv",
+      "description": "ATS-friendly generated resumes"
+    },
+    "/motivation_letters/{letterId}": {
+      "schema": "motivation_letter",
+      "description": "AI-crafted motivation cover letters"
+    },
+    "/portfolios/{portfolioId}": {
+      "schema": "portfolio",
+      "description": "User single-page portfolios"
+    },
+    "/invites/{inviteId}": {
+      "schema": "invite",
+      "description": "Recruiter tokens assigned to specific candidate emails"
+    },
+    "/job_offers/{offerId}": {
+      "schema": "job_offer",
+      "description": "Recruiter-posted job offers on PrepareAI"
+    }
+  }
+}

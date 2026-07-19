@@ -1,0 +1,188 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default-Deny Catch-All)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Core Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function getUserRole() {
+      return get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/profiles/$(request.auth.uid)) && getUserRole() == 'admin';
+    }
+
+    function isInterviewer() {
+      return isSignedIn() && exists(/databases/$(database)/documents/profiles/$(request.auth.uid)) && getUserRole() == 'interviewer';
+    }
+
+    // --- Entity Validation Schemas ---
+    function isValidProfile(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.email is string && data.email.size() <= 200
+        && data.role is string && data.role in ['user', 'admin', 'interviewer', 'candidate']
+        && (!('full_name' in data) || (data.full_name is string && data.full_name.size() <= 100))
+        && (!('pronouns' in data) || (data.pronouns is string && data.pronouns.size() <= 20))
+        && (!('avatar_url' in data) || (data.avatar_url is string && data.avatar_url.size() <= 1000000))
+        && (!('subscription_tier' in data) || (data.subscription_tier is string && data.subscription_tier in ['free', 'pro', 'recruiter']))
+        && (!('is_admin' in data) || (data.is_admin is bool))
+        && (!('updated_at' in data) || (data.updated_at is string || data.updated_at is timestamp));
+    }
+
+    function isValidCV(data) {
+      return data.user_id is string && data.user_id.size() <= 128
+        && data.title is string && data.title.size() <= 200
+        && data.content is string && data.content.size() <= 500000;
+    }
+
+    function isValidLetter(data) {
+      return data.user_id is string && data.user_id.size() <= 128
+        && data.title is string && data.title.size() <= 200
+        && data.job_title is string && data.job_title.size() <= 200
+        && data.company is string && data.company.size() <= 200
+        && data.content is string && data.content.size() <= 100000;
+    }
+
+    function isValidPortfolio(data) {
+      return data.user_id is string && data.user_id.size() <= 128
+        && data.title is string && data.title.size() <= 200
+        && data.content is string && data.content.size() <= 500000;
+    }
+
+    function isValidInterview(data) {
+      return data.user_id is string && data.user_id.size() <= 128
+        && data.status is string && data.status in ['NotStarted', 'InProgress', 'Finished'];
+    }
+
+    function isValidInvite(data) {
+      return data.interviewer_id is string && data.interviewer_id.size() <= 128
+        && data.email is string && data.email.size() <= 200
+        && data.token is string && data.token.size() <= 128
+        && data.status is string && data.status in ['pending', 'accepted'];
+    }
+
+    function isValidJobOffer(data) {
+      return data.recruiter_id is string && data.recruiter_id.size() <= 128
+        && data.title is string && data.title.size() <= 200
+        && data.company is string && data.company.size() <= 200
+        && data.location is string && data.location.size() <= 200
+        && data.description is string && data.description.size() <= 100000;
+    }
+
+    // --- Rules Definitions for Collections ---
+
+    // PROFILES
+    match /profiles/{userId} {
+      allow get: if isSignedIn() && (isOwner(userId) || isAdmin() || isInterviewer());
+      allow list: if isSignedIn() && isAdmin();
+      allow create: if isSignedIn() && isOwner(userId) && isValidProfile(incoming()) 
+                     && (
+                       (incoming().role == 'user' 
+                        && (!('is_admin' in incoming()) || incoming().is_admin == false)
+                        && (!('subscription_tier' in incoming()) || incoming().subscription_tier == 'free'))
+                       || (request.auth.token.email == 'shopinstatechno@gmail.com')
+                     );
+      allow update: if isSignedIn() && (
+        (isOwner(userId) && isValidProfile(incoming()) && (
+          (request.auth.token.email == 'shopinstatechno@gmail.com')
+          ||
+          (incoming().role == existing().role && incoming().is_admin == existing().is_admin && incoming().subscription_tier == existing().subscription_tier && incoming().diff(existing()).affectedKeys().hasOnly(['full_name', 'pronouns', 'avatar_url', 'updated_at', 'email']) && (!('email' in incoming()) || incoming().email == request.auth.token.email))
+        ))
+        || isAdmin()
+      );
+      allow delete: if isSignedIn() && isAdmin();
+    }
+
+    // CVS
+    match /cvs/{cvId} {
+      allow get: if isSignedIn() && (isOwner(resource.data.user_id) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.user_id == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isOwner(incoming().user_id) && isValidCV(incoming());
+      allow update: if isSignedIn() && isOwner(existing().user_id) && isValidCV(incoming()) && incoming().user_id == existing().user_id && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['title', 'content', 'data'])
+      );
+      allow delete: if isSignedIn() && isOwner(existing().user_id);
+    }
+
+    // MOTIVATION LETTERS
+    match /motivation_letters/{letterId} {
+      allow get: if isSignedIn() && (isOwner(resource.data.user_id) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.user_id == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isOwner(incoming().user_id) && isValidLetter(incoming());
+      allow update: if isSignedIn() && isOwner(existing().user_id) && isValidLetter(incoming()) && incoming().user_id == existing().user_id && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['title', 'job_title', 'company', 'content'])
+      );
+      allow delete: if isSignedIn() && isOwner(existing().user_id);
+    }
+
+    // PORTFOLIOS
+    match /portfolios/{portfolioId} {
+      allow get: if isSignedIn() && (isOwner(resource.data.user_id) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.user_id == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isOwner(incoming().user_id) && isValidPortfolio(incoming());
+      allow update: if isSignedIn() && isOwner(existing().user_id) && isValidPortfolio(incoming()) && incoming().user_id == existing().user_id && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['title', 'content', 'data'])
+      );
+      allow delete: if isSignedIn() && isOwner(existing().user_id);
+    }
+
+    // INTERVIEWS
+    match /interviews/{interviewId} {
+      allow get: if isSignedIn() && (isOwner(resource.data.user_id) || isAdmin() || isInterviewer());
+      allow list: if isSignedIn() && (resource.data.user_id == request.auth.uid || isAdmin() || isInterviewer());
+      allow create: if isSignedIn() && isOwner(incoming().user_id) && isValidInterview(incoming());
+      allow update: if isSignedIn() && isOwner(existing().user_id) && isValidInterview(incoming()) && incoming().user_id == existing().user_id && (
+        (existing().status != 'Finished' && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'transcription', 'feedback', 'report', 'resources']))
+        || isAdmin()
+      );
+      allow delete: if isSignedIn() && (isOwner(existing().user_id) || isAdmin());
+    }
+
+    // INVITES
+    match /invites/{inviteId} {
+      allow get: if true; // Checked via token by anyone on landing/registering
+      allow list: if isSignedIn() && (isOwner(resource.data.interviewer_id) || resource.data.email == request.auth.token.email || isAdmin());
+      allow create: if isSignedIn() && isOwner(incoming().interviewer_id) && isValidInvite(incoming());
+      allow update: if isValidInvite(incoming()) && (
+        (isSignedIn() && isOwner(existing().interviewer_id) && incoming().interviewer_id == existing().interviewer_id && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'email', 'config', 'candidate_id']))
+        ||
+        (isSignedIn() && incoming().status == 'accepted' && incoming().candidate_id == request.auth.uid && request.auth.token.email == existing().email && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'candidate_id']))
+      );
+      allow delete: if isSignedIn() && (isOwner(existing().interviewer_id) || isAdmin());
+    }
+
+    // JOB OFFERS
+    match /job_offers/{offerId} {
+      allow read: if true;
+      allow create: if isSignedIn() && (isInterviewer() || isAdmin()) && isValidJobOffer(incoming()) && incoming().recruiter_id == request.auth.uid;
+      allow update: if isSignedIn() && (isInterviewer() || isAdmin()) && isValidJobOffer(incoming()) && existing().recruiter_id == request.auth.uid && incoming().recruiter_id == existing().recruiter_id && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['title', 'company', 'location', 'description', 'salary', 'experienceLevel', 'jobType', 'url'])
+      );
+      allow delete: if isSignedIn() && (isAdmin() || (isInterviewer() && existing().recruiter_id == request.auth.uid));
+    }
+  }
+}
