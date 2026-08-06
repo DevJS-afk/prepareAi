@@ -31,15 +31,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
       {/* Navigation */}
       <nav className="w-full max-w-7xl mx-auto px-6 py-6 flex justify-between items-center z-50">
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <div className="relative w-10 h-10 flex items-center justify-center">
-                <div className="absolute inset-0 bg-gradient-to-tr from-brand-blue to-brand-purple rounded-xl opacity-80 group-hover:opacity-100 transition-opacity blur-sm"></div>
-                <div className="relative w-full h-full bg-slate-900 dark:bg-black/50 rounded-xl border border-white/10 flex items-center justify-center backdrop-blur-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.5 1.43 4.15 4.14 4.15 7.41 0 1.25-.36 2.42-1.05 3.4z"/></svg>
-                </div>
-            </div>
-            <span className="text-2xl font-display font-bold tracking-tight text-slate-950 dark:text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-slate-900 group-hover:to-slate-600 dark:group-hover:from-white dark:group-hover:to-gray-400 transition-all">
-                prepare<span className="text-brand-blue">AI</span>
-            </span>
+            <img src="/logo.svg" alt="prepareAI logo" className="h-10 w-auto group-hover:scale-105 transition-transform duration-300" />
         </div>
         <div className="flex items-center gap-6 md:gap-8">
             <div className="hidden md:flex items-center gap-6">

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
+import { marked } from 'marked';
 import { GoogleGenAI } from '@google/genai';
 import { supabase } from '../services/firebaseClient';
 import type { SubscriptionTier } from '../types';
@@ -180,8 +181,8 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                 "location": "string"
               },
               "targetRole": "string (infer from content if not explicit)",
-              "experience": "string (formatted as bullet points)",
-              "education": "string (formatted as text/bullets)",
+              "experience": "string (retain exactly: **Company | Role** \n- Bullet 1\n- Bullet 2)",
+              "education": "string (retain exactly: **Institution** \nDegree/Details)",
               "skills": "string (comma separated list, extract all relevant skills)",
               "customSections": [
                 { "title": "string", "content": "string" }
@@ -190,7 +191,7 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
           `;
 
           const response = await ai.models.generateContent({
-              model: 'gemini-1.5-flash',
+              model: 'gemini-3.1-pro-preview',
               contents: [contentPart, { text: prompt }],
               config: { responseMimeType: 'application/json' }
           });
@@ -216,7 +217,10 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
           setImportFileBase64(null);
 
       } catch (error) {
-          console.error("Parsing failed", error);
+          const errStrConsoleCV = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
+          if (!(errStrConsoleCV.includes("429") || errStrConsoleCV.toLowerCase().includes("quota"))) {
+              console.error("Parsing failed", error);
+          }
           const errStr = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
           if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
               alert("We have temporarily exceeded our AI service quota. Please try again later.");
@@ -234,17 +238,9 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
     await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
-        const formatContent = (text: any) => {
+const formatContent = (text: any) => {
             if (!text) return '';
-            const content = String(text);
-            return content.split('\n').map(line => {
-                const trimmed = line.trim();
-                if (!trimmed) return '';
-                if (trimmed.startsWith('-') || trimmed.startsWith('•') || trimmed.startsWith('*')) {
-                    return `<li>${trimmed.substring(1).trim()}</li>`;
-                }
-                return `<p>${line}</p>`;
-            }).join('');
+            return marked.parse(String(text), { async: false, breaks: true }) as string;
         };
 
         const commonStyles = `
@@ -394,7 +390,10 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
         
         setGeneratedCV(fullHtml);
     } catch (error) {
-        console.error(error);
+        const errStrConsoleCV2 = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
+        if (!(errStrConsoleCV2.includes("429") || errStrConsoleCV2.toLowerCase().includes("quota"))) {
+            console.error(error);
+        }
         const errStr = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
         if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
             alert("We have temporarily exceeded our AI service quota. Please try again later.");
@@ -443,7 +442,7 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
           `;
 
           const response = await ai.models.generateContent({
-              model: 'gemini-1.5-flash',
+              model: 'gemini-3.1-pro-preview',
               contents: prompt,
               config: { responseMimeType: 'application/json' }
           });
@@ -451,7 +450,10 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
           setAtsResult(JSON.parse(response.text || '{}'));
 
       } catch (e: any) {
-          console.error("ATS Scan failed", e);
+          const errStrConsoleCV3 = String(e) + " " + JSON.stringify(e, Object.getOwnPropertyNames(e || {}));
+          if (!(errStrConsoleCV3.includes("429") || errStrConsoleCV3.toLowerCase().includes("quota"))) {
+              console.error("ATS Scan failed", e);
+          }
           const errStr = String(e) + " " + JSON.stringify(e, Object.getOwnPropertyNames(e || {}));
           if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
               alert("We have temporarily exceeded our AI service quota. Please try again later.");
@@ -574,7 +576,7 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
         
         {showAtsModal && (
             <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-                <div className="bg-[#1a1a1a] w-full max-w-4xl rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col max-h-[85vh] shadow-2xl overflow-hidden">
+                <div className="bg-white dark:bg-[#1a1a1a] w-full max-w-4xl rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col max-h-[85vh] shadow-2xl overflow-hidden">
                     <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-slate-200/70 dark:bg-black/40">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg bg-brand-blue/20 flex items-center justify-center text-brand-blue">
@@ -670,7 +672,7 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
 
         {isImporting && (
             <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                <div className="bg-[#1a1a1a] w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-white/10 p-6 shadow-2xl flex flex-col max-h-[80vh]">
+                <div className="bg-white dark:bg-[#1a1a1a] w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-white/10 p-6 shadow-2xl flex flex-col max-h-[80vh]">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('CVBuilder.ImportModalTitle')}</h3>
                         <button onClick={() => setIsImporting(false)} className="text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white">
@@ -721,7 +723,7 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
 
         <div className="h-16 border-b border-slate-200 dark:border-white/10 bg-slate-200/30 dark:bg-black/20 flex items-center justify-between px-6 shrink-0 backdrop-blur-md">
             <div className="flex items-center gap-4">
-                <button onClick={onBack} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white">
+                <button onClick={onBack} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                 </button>
                 <div className="flex flex-col">
@@ -757,7 +759,7 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
 
                  <button 
                     onClick={() => setIsImporting(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg text-sm font-medium transition-colors text-gray-300"
+                    className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg text-sm font-medium transition-colors text-gray-300"
                  >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
                     {t('CVBuilder.Import')}
@@ -774,7 +776,7 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                         </button>
                         <button 
                             onClick={handlePrint}
-                            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors text-slate-900 dark:text-white"
+                            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 rounded-lg text-sm font-medium transition-colors text-slate-900 dark:text-white"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                             {t('CVBuilder.Print')}
@@ -878,7 +880,7 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                         placeholder={t('CVBuilder.TargetRolePlaceholder')}
                         value={targetRole}
                         onChange={(e) => setTargetRole(e.target.value)}
-                        className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:ring-1 focus:ring-brand-purple outline-none"
+                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:ring-1 focus:ring-brand-purple outline-none"
                     />
                 </div>
 
@@ -962,15 +964,15 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
                 </div>
             </div>
 
-            <div className="flex-1 bg-[#1a1a1a] p-8 overflow-y-auto flex justify-center items-start custom-scrollbar relative">
+            <div className="flex-1 bg-white dark:bg-[#1a1a1a] p-8 overflow-y-auto flex justify-center items-start custom-scrollbar relative">
                 
                 {generatedCV && (
                     <div className="absolute top-6 right-6 z-10 flex items-center gap-2 bg-black/60 backdrop-blur-md p-1.5 rounded-lg border border-slate-200 dark:border-white/10 shadow-lg">
-                        <button onClick={() => setZoom(z => Math.max(0.3, z - 0.1))} className="p-1.5 hover:bg-white/10 rounded text-slate-900 dark:text-white transition-colors" title="Zoom Out">
+                        <button onClick={() => setZoom(z => Math.max(0.3, z - 0.1))} className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded text-slate-900 dark:text-white transition-colors" title="Zoom Out">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
                         </button>
                         <span className="text-xs font-mono text-gray-300 w-12 text-center select-none">{Math.round(zoom * 100)}%</span>
-                        <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} className="p-1.5 hover:bg-white/10 rounded text-slate-900 dark:text-white transition-colors" title="Zoom In">
+                        <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded text-slate-900 dark:text-white transition-colors" title="Zoom In">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                         </button>
                     </div>

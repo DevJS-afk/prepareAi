@@ -45,13 +45,16 @@ const MotivationLetter: React.FC<MotivationLetterProps> = ({ onBack }) => {
         - Structure: Introduction (hook), Body (skills/experience mapped to role), Conclusion (call to action).`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-3.1-pro-preview',
             contents: prompt,
         });
         
         setGeneratedLetter(response.text || '');
     } catch (error) {
-        console.error(error);
+        const errStrConsole = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
+        if (!(errStrConsole.includes("429") || errStrConsole.toLowerCase().includes("quota"))) {
+            console.error(error);
+        }
         const errStr = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
         if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
             alert("We have temporarily exceeded our AI service quota. Please try again later.");

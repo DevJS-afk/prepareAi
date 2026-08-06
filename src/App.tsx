@@ -381,28 +381,9 @@ const App: React.FC = () => {
          <header className="w-full sticky top-0 z-50 backdrop-blur-xl bg-white/70 dark:bg-dark-bg/60 border-b border-slate-200/80 dark:border-white/5 shadow-md">
            <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
               <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
-                  <div className="relative group w-10 h-10 flex items-center justify-center overflow-hidden shrink-0">
-                                <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 rounded-[0.8rem] opacity-80 group-hover:opacity-100 group-hover:rotate-180 transition-all duration-700 blur-sm"></div>
-                                <div className="relative w-full h-full bg-slate-900 dark:bg-[#030712] rounded-[0.8rem] border border-white/10 flex items-center justify-center backdrop-blur-sm z-10 overflow-hidden shadow-inner">
-                                    <div className="absolute -inset-2 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 rotate-45"></div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white transform group-hover:scale-110 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="url(#logo-grad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                      <defs>
-                                        <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                          <stop offset="0%" stopColor="#818cf8" />
-                                          <stop offset="100%" stopColor="#e879f9" />
-                                        </linearGradient>
-                                      </defs>
-                                      <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                                      <path d="M2 17l10 5 10-5" />
-                                      <path d="M2 12l10 5 10-5" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div>
-                              <h1 className="text-[26px] font-display font-black tracking-tighter text-slate-900 dark:text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-indigo-500 group-hover:to-pink-500 transition-all duration-300 leading-none" style={{ letterSpacing: '-0.06em' }}>
-                                  prepare<span className="text-indigo-500">AI</span>
-                              </h1>
-                    <p className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-gray-400 font-semibold">
+                  <img src="/logo.svg" alt="prepareAI logo" className="h-10 w-auto" />
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-gray-400 font-semibold mt-1">
                         {userRole === 'admin' ? 'Admin Mode' : userRole === 'interviewer' ? 'Recruiter Mode' : userRole === 'candidate' ? 'Candidate Mode' : (subscriptionTier === 'pro' ? 'Pro Plan' : 'Free Tier')}
                     </p>
                   </div>
@@ -417,7 +398,7 @@ const App: React.FC = () => {
                     {userRole !== 'admin' && (
                         <button 
                              onClick={() => navigate('/pricing')}
-                             className={`text-sm font-bold transition-all px-3 py-1.5 rounded-full border ${location.pathname === '/pricing' ? 'bg-brand-yellow text-black border-brand-yellow' : 'bg-transparent text-brand-yellow border-brand-yellow hover:bg-brand-yellow/10'}`}
+                             className={`text-sm font-bold transition-all px-4 py-1.5 rounded-full ${location.pathname === '/pricing' ? 'bg-brand-yellow text-black' : 'bg-gradient-to-r from-brand-yellow to-yellow-400 text-black shadow hover:shadow-md transform hover:-translate-y-0.5'}`}
                         >
                             {subscriptionTier === 'free' ? 'Upgrade' : 'Plans'}
                         </button>
@@ -518,8 +499,10 @@ const App: React.FC = () => {
             <Route path="/dashboard" element={session ? <Dashboard onNavigate={(view) => {
                     if (view === 'dashboard') navigate('/dashboard');
                     else if (view === 'interview-setup') navigate('/interview/setup');
+                    else if (view === 'pricing') navigate('/pricing');
                     else navigate(`/${view}`);
-                }} 
+                }}
+                 subscriptionTier={subscriptionTier} 
                 userName={displayName} 
                 isAdmin={userRole === 'admin'}
                 pendingConfig={pendingInviteConfig}

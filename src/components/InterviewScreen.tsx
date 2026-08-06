@@ -720,7 +720,7 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ onEnd, config, isPrac
   }
 
   return (
-    <div ref={containerRef} className="w-full h-[85vh] max-h-[900px] glass-panel rounded-2xl overflow-hidden flex flex-col shadow-2xl animate-fade-in border border-white/5 relative">
+    <div ref={containerRef} className="w-full h-[85vh] max-h-[900px] bg-gray-950 rounded-2xl overflow-hidden flex flex-col shadow-2xl animate-fade-in border border-white/5 relative">
       
       {!sessionStarted && (
           <div className="absolute inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-8 text-center animate-fade-in">

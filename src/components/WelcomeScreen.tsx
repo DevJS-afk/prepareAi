@@ -3,16 +3,17 @@ import type { InterviewConfig } from '../types';
 import { useTranslation } from 'react-i18next';
 
 interface DashboardProps {
-  onNavigate: (view: 'dashboard' | 'interview-setup' | 'cv-builder' | 'motivation-letter' | 'profile' | 'portfolio-builder' | 'job-board' | 'admin-dashboard') => void;
+  onNavigate: (view: 'dashboard' | 'interview-setup' | 'pricing' | 'cv-builder' | 'motivation-letter' | 'profile' | 'portfolio-builder' | 'job-board' | 'admin-dashboard') => void;
   userName?: string | null;
   isAdmin?: boolean;
+  subscriptionTier?: string;
   pendingConfig?: InterviewConfig | null;
   onStartAssigned?: () => void;
   lastUsedConfig?: InterviewConfig | null;
   onStartLastUsed?: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ onNavigate, userName, isAdmin, pendingConfig, onStartAssigned, lastUsedConfig, onStartLastUsed }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onNavigate, userName, isAdmin, pendingConfig, onStartAssigned, lastUsedConfig, onStartLastUsed, subscriptionTier }) => {
   const { t } = useTranslation();
 
   const isCandidateMode = !!pendingConfig;
@@ -29,8 +30,16 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate, userName, isAdmin, pe
              ? t('welcome.candidateSubtitle')
              : t('welcome.userSubtitle')}
         </p>
-
-        
+        {subscriptionTier === 'free' && (
+           <div className="mt-8 flex justify-center">
+              <button onClick={() => onNavigate('pricing')} className="flex items-center gap-2 bg-gradient-to-r from-brand-yellow to-yellow-400 text-black font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-[0_0_20px_rgba(250,204,21,0.4)] transition-all transform hover:-translate-y-1">
+                 Upgrade to Pro
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                   <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+                 </svg>
+              </button>
+           </div>
+        )}
       </div>
 
       {/* Grid Section */}

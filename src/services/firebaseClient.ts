@@ -207,10 +207,11 @@ class FirestoreQueryBuilder {
   }
 
   insert(values: any): any {
+    const singleValue = Array.isArray(values) ? values[0] : values;
     const colRef = collection(db, this.collectionName);
-    const docId = values.id || doc(colRef).id;
+    const docId = singleValue.id || doc(colRef).id;
     const docRef = doc(db, this.collectionName, docId);
-    const dataToSave = { ...values, id: docId, created_at: values.created_at || new Date().toISOString() };
+    const dataToSave = { ...singleValue, id: docId, created_at: singleValue.created_at || new Date().toISOString() };
     
     const promise = setDoc(docRef, dataToSave).then(() => ({ data: [dataToSave], error: null }));
     const chain = {
@@ -221,10 +222,11 @@ class FirestoreQueryBuilder {
   }
 
   upsert(values: any): any {
+    const singleValue = Array.isArray(values) ? values[0] : values;
     const colRef = collection(db, this.collectionName);
-    const docId = values.id || doc(colRef).id;
+    const docId = singleValue.id || doc(colRef).id;
     const docRef = doc(db, this.collectionName, docId);
-    const dataToSave = { ...values, id: docId, updated_at: new Date().toISOString() };
+    const dataToSave = { ...singleValue, id: docId, updated_at: new Date().toISOString() };
     
     const promise = setDoc(docRef, dataToSave, { merge: true }).then(() => ({ data: [dataToSave], error: null }));
     const chain = {

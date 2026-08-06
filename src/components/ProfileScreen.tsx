@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/firebaseClient';
+import { GoogleGenAI } from '@google/genai';
 import type { InterviewConfig, TranscriptionEntry, FeedbackEntry, InterviewReport, SuggestedResource, SavedCV, SavedLetter, SavedPortfolio, SubscriptionTier, Session } from '../types';
 import EndScreen from './EndScreen';
 
@@ -10,6 +11,8 @@ interface Profile {
   avatar_url: string;
   is_admin?: boolean;
   subscription_tier?: SubscriptionTier;
+  job_title?: string;
+  bio?: string;
 }
 
 interface InterviewHistoryItem {
@@ -43,7 +46,7 @@ interface DocViewerState {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV, onEditPortfolio, onManagePlan }) => {
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<Profile>({ full_name: '', pronouns: '', avatar_url: '', is_admin: false, subscription_tier: 'free' });
+  const [profile, setProfile] = useState<Profile>({ full_name: '', pronouns: '', avatar_url: '', is_admin: false, subscription_tier: 'free', job_title: '', bio: '' });
   const [interviews, setInterviews] = useState<InterviewHistoryItem[]>([]);
   const [savedCVs, setSavedCVs] = useState<SavedCV[]>([]);
   const [savedLetters, setSavedLetters] = useState<SavedLetter[]>([]);
@@ -67,6 +70,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
   const [activeTab, setActiveTab] = useState<TabView>('history');
   const [error, setError] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [isImportingCV, setIsImportingCV] = useState(false);
 
   const fetchProfileData = useCallback(async () => {
     if (!supabase || !session.user) {
@@ -80,7 +84,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('full_name, pronouns, avatar_url, is_admin, subscription_tier')
+          .select('full_name, pronouns, avatar_url, is_admin, subscription_tier, job_title, bio')
           .eq('id', session.user.id)
           .maybeSingle(); 
         
@@ -89,7 +93,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
                 console.warn("Database missing avatar_url or subscription_tier. Falling back to basic profile. Run the 'Fix Database' script in README.md.");
                 const { data: basicData, error: basicError } = await supabase
                     .from('profiles')
-                    .select('full_name, pronouns')
+                    .select('full_name, pronouns, job_title, bio')
                     .eq('id', session.user.id)
                     .maybeSingle();
                 
@@ -98,6 +102,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
                     setProfile({ 
                         full_name: basicData.full_name || '', 
                         pronouns: basicData.pronouns || '',
+                        job_title: basicData.job_title || '',
+                        bio: basicData.bio || '',
                         avatar_url: '',
                         subscription_tier: 'free'
                     });
@@ -176,6 +182,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
         id: session.user.id,
         full_name: profile.full_name,
         pronouns: profile.pronouns,
+        job_title: profile.job_title,
+        bio: profile.bio,
         avatar_url: profile.avatar_url,
         updated_at: new Date().toISOString(),
       });
@@ -218,6 +226,74 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
           setPasswordMessage({ type: 'error', text: err.message });
       }
   };
+
+  
+  const handleCVUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (!process.env.API_KEY) {
+          alert("API Key missing");
+          return;
+      }
+      setIsImportingCV(true);
+      
+      const reader = new FileReader();
+      const processContent = async (contentPart: any) => {
+          try {
+              const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+              const prompt = `
+                Act as an expert Profile Extractor. 
+                Extract the following details from this CV/Resume:
+                - fullName
+                - pronouns (if any, otherwise empty string)
+                - job_title (current or most recent role)
+                - bio (a short professional summary, 1-2 sentences)
+
+                Return a JSON object:
+                {
+                  "fullName": "string",
+                  "pronouns": "string",
+                  "job_title": "string",
+                  "bio": "string"
+                }
+              `;
+              const response = await ai.models.generateContent({
+                  model: 'gemini-3.1-pro-preview',
+                  contents: [contentPart, { text: prompt }],
+                  config: { responseMimeType: 'application/json' }
+              });
+              const data = JSON.parse(response.text || '{}');
+              setProfile(prev => ({
+                  ...prev,
+                  full_name: data.fullName || prev.full_name,
+                  pronouns: data.pronouns || prev.pronouns,
+                  job_title: data.job_title || prev.job_title,
+                  bio: data.bio || prev.bio
+              }));
+          } catch (error) {
+              console.error("Failed to parse CV", error);
+              alert("Failed to auto-fill from CV.");
+          } finally {
+              setIsImportingCV(false);
+          }
+      };
+
+      if (file.type === "application/pdf") {
+          reader.onload = (event) => {
+              const base64String = event.target?.result;
+              const rawBase64 = typeof base64String === 'string' ? base64String.split(',')[1] : '';
+              processContent({ inlineData: { mimeType: 'application/pdf', data: rawBase64 } });
+          };
+          reader.readAsDataURL(file);
+      } else {
+          reader.onload = (event) => {
+              const text = event.target?.result;
+              processContent({ text: text });
+          };
+          reader.readAsText(file);
+      }
+  };
+
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0 || !supabase) return;
@@ -573,8 +649,17 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
                   </label>
               </div>
               
+              
               {isEditingProfile ? (
                   <form onSubmit={handleUpdateProfile} className="w-full space-y-4 mb-4">
+                      <div className="flex justify-between items-center bg-brand-blue/10 rounded-lg p-3 border border-brand-blue/20">
+                          <span className="text-sm text-brand-blue font-medium">Auto-fill from CV</span>
+                          <label className="cursor-pointer bg-brand-blue text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-blue-600 transition-colors">
+                              {isImportingCV ? 'Processing...' : 'Upload CV'}
+                              <input type="file" accept=".pdf,.txt,.md" className="hidden" onChange={handleCVUpload} disabled={isImportingCV} />
+                          </label>
+                      </div>
+                      
                       <input
                           type="text"
                           value={profile.full_name}
@@ -587,7 +672,20 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
                           value={profile.pronouns}
                           onChange={(e) => setProfile({ ...profile, pronouns: e.target.value })}
                           className="w-full bg-slate-200/30 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-blue outline-none"
-                          placeholder="Pronouns"
+                          placeholder="Pronouns (e.g., they/them)"
+                      />
+                      <input
+                          type="text"
+                          value={profile.job_title || ''}
+                          onChange={(e) => setProfile({ ...profile, job_title: e.target.value })}
+                          className="w-full bg-slate-200/30 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-blue outline-none"
+                          placeholder="Job Title (e.g., Software Engineer)"
+                      />
+                      <textarea
+                          value={profile.bio || ''}
+                          onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                          className="w-full bg-slate-200/30 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-blue outline-none resize-none h-24 text-sm"
+                          placeholder="Short Bio / Summary"
                       />
                       <div className="flex gap-2 justify-center pt-2">
                           <button type="button" onClick={() => setIsEditingProfile(false)} className="px-4 py-2 text-sm text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white">Cancel</button>
@@ -595,11 +693,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
                       </div>
                   </form>
               ) : (
+                  
                   <>
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{profile.full_name || 'Anonymous User'}</h3>
-                    <p className="text-slate-600 dark:text-gray-400 text-sm mb-2">{session.user.email}</p>
+                    {profile.job_title && <p className="text-brand-blue font-medium text-sm mb-1">{profile.job_title}</p>}
+                    <p className="text-slate-600 dark:text-gray-400 text-sm mb-3">{session.user.email}</p>
+                    {profile.bio && <p className="text-sm text-slate-700 dark:text-gray-300 text-center mb-4 leading-relaxed">{profile.bio}</p>}
                     
                     <div className="flex flex-wrap justify-center gap-2 mb-4">
+
                         {profile.pronouns && <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-xs text-gray-300 border border-slate-200 dark:border-white/10">{profile.pronouns}</span>}
                         
                         {profile.is_admin ? (
@@ -609,7 +711,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
                         ) : (
                             <div className={`px-3 py-1 text-xs font-bold rounded-full border flex items-center gap-2 ${profile.subscription_tier === 'pro' ? 'bg-brand-purple/20 text-brand-purple border-brand-purple/30' : profile.subscription_tier === 'recruiter' ? 'bg-brand-green/20 text-brand-green border-brand-green/30' : 'bg-gray-700/50 text-slate-600 dark:text-gray-400 border-gray-600'}`}>
                                 {profile.subscription_tier === 'pro' ? 'Pro Plan' : profile.subscription_tier === 'recruiter' ? 'Recruiter' : 'Free Plan'}
-                                <button onClick={onManagePlan} className="hover:text-slate-900 dark:text-white underline text-[10px] ml-1">Manage</button>
+                                <button onClick={onManagePlan} className="hover:text-slate-900 dark:text-white underline text-[10px] ml-1">{profile.subscription_tier === 'free' ? 'Upgrade' : 'Manage'}</button>
                             </div>
                         )}
                     </div>

@@ -150,7 +150,7 @@ const InterviewSetup: React.FC<InterviewSetupProps> = ({ onStart, onBack }) => {
               Do not use markdown formatting for the JSON.`;
               
               const response = await ai.models.generateContent({
-                  model: 'gemini-1.5-flash',
+                  model: 'gemini-3.1-pro-preview',
                   contents: [contentPart, { text: prompt }],
                   config: { responseMimeType: 'application/json' }
               });
@@ -174,7 +174,10 @@ const InterviewSetup: React.FC<InterviewSetupProps> = ({ onStart, onBack }) => {
           }
 
       } catch (err) {
-          console.error(err);
+          const errStrConsoleSetup = String(err) + " " + JSON.stringify(err, Object.getOwnPropertyNames(err || {}));
+          if (!(errStrConsoleSetup.includes("429") || errStrConsoleSetup.toLowerCase().includes("quota"))) {
+              console.error(err);
+          }
           const errStr = String(err) + " " + JSON.stringify(err, Object.getOwnPropertyNames(err || {}));
           if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
               alert("We have temporarily exceeded our AI service quota. Please try again later.");

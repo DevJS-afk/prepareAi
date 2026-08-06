@@ -31,7 +31,10 @@ export const useInterview = (config: InterviewConfig) => {
   const currentInputTranscriptionRef = useRef('');
   const currentOutputTranscriptionRef = useRef('');
 
+  const interruptIdRef = useRef(0);
+  const audioQueuePromiseRef = useRef<Promise<void>>(Promise.resolve());
   const transcriptionRef = useRef(transcription);
+  const isAiSpeakingRef = useRef(false);
   useEffect(() => {
     transcriptionRef.current = transcription;
   }, [transcription]);
@@ -53,7 +56,7 @@ The candidate responded: "${userAnswer}"
 Analyze the candidate's response. Provide brief (1-2 sentences), constructive, and actionable feedback. If possible, refer to a specific part of their answer to make the feedback more concrete. For example, instead of "be more specific", you could say "When you mentioned 'handling a project,' giving a concrete example with metrics would have made your answer stronger." Frame the feedback positively.`;
       
       const response: GenerateContentResponse = await aiRef.current.models.generateContent({
-        model: 'gemini-3.1-flash-lite',
+        model: 'gemini-3.1-pro-preview',
         contents: prompt,
       });
       const feedbackText = response.text;
@@ -61,7 +64,10 @@ Analyze the candidate's response. Provide brief (1-2 sentences), constructive, a
           setFeedback(prev => [...prev, { userText: userAnswer, feedbackText }]);
       }
     } catch (error) {
-      console.error("Error getting feedback:", error);
+      const errStrConsole2 = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
+      if (!(errStrConsole2.includes("429") || errStrConsole2.toLowerCase().includes("quota"))) {
+        console.error("Error getting feedback:", error);
+      }
     } finally {
       setAiStatus('listening');
     }
@@ -113,7 +119,7 @@ Analyze the candidate's response. Provide brief (1-2 sentences), constructive, a
           throw new Error("API_KEY environment variable not set.");
         }
 
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
         aiRef.current = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
         inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
@@ -147,6 +153,8 @@ Analyze the candidate's response. Provide brief (1-2 sentences), constructive, a
               scriptProcessorRef.current = inputAudioContextRef.current!.createScriptProcessor(4096, 1, 1);
 
               scriptProcessorRef.current.onaudioprocess = (audioProcessingEvent) => {
+                const isPlayingAudio = outputAudioContextRef.current && (nextStartTimeRef.current > outputAudioContextRef.current.currentTime);
+                if (isAiSpeakingRef.current || isPlayingAudio) return;
                 const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
                 const pcmBlob: Blob = createBlob(inputData);
                 sessionPromise.then((session) => {
@@ -162,6 +170,7 @@ Analyze the candidate's response. Provide brief (1-2 sentences), constructive, a
 
                 if(message.serverContent?.modelTurn) {
                     setAiStatus('speaking');
+                    isAiSpeakingRef.current = true;
                 }
 
                 if (message.serverContent?.outputTranscription) {
@@ -171,6 +180,7 @@ Analyze the candidate's response. Provide brief (1-2 sentences), constructive, a
                     currentInputTranscriptionRef.current += message.serverContent.inputTranscription.text;
                 }
                 if (message.serverContent?.turnComplete) {
+                    isAiSpeakingRef.current = false;
                     const userInput = currentInputTranscriptionRef.current.trim();
                     const aiResponse = currentOutputTranscriptionRef.current.trim();
                     setTranscription(prev => {
@@ -196,20 +206,30 @@ Analyze the candidate's response. Provide brief (1-2 sentences), constructive, a
 
                 const base64EncodedAudioString = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
                 if (base64EncodedAudioString && outputAudioContextRef.current) {
-                    nextStartTimeRef.current = Math.max(nextStartTimeRef.current, outputAudioContextRef.current.currentTime);
-                    const audioBuffer = await decodeAudioData(decode(base64EncodedAudioString), outputAudioContextRef.current, 24000, 1);
-                    const source = outputAudioContextRef.current.createBufferSource();
-                    source.buffer = audioBuffer;
-                    source.connect(outputNode);
-                    source.addEventListener('ended', () => {
-                        audioSourcesRef.current.delete(source);
+                    const currentInterruptId = interruptIdRef.current;
+                    audioQueuePromiseRef.current = audioQueuePromiseRef.current.then(async () => {
+                        if (!outputAudioContextRef.current || currentInterruptId !== interruptIdRef.current) return;
+                        nextStartTimeRef.current = Math.max(nextStartTimeRef.current, outputAudioContextRef.current.currentTime);
+                        try {
+                            const audioBuffer = await decodeAudioData(decode(base64EncodedAudioString), outputAudioContextRef.current, 24000, 1);
+                            if (currentInterruptId !== interruptIdRef.current) return;
+                            const source = outputAudioContextRef.current.createBufferSource();
+                            source.buffer = audioBuffer;
+                            source.connect(outputNode);
+                            source.addEventListener('ended', () => {
+                                audioSourcesRef.current.delete(source);
+                            });
+                            source.start(nextStartTimeRef.current);
+                            nextStartTimeRef.current += audioBuffer.duration;
+                            audioSourcesRef.current.add(source);
+                        } catch (err) {
+                            console.error("Error decoding audio:", err);
+                        }
                     });
-                    source.start(nextStartTimeRef.current);
-                    nextStartTimeRef.current += audioBuffer.duration;
-                    audioSourcesRef.current.add(source);
                 }
                 const interrupted = message.serverContent?.interrupted;
                 if (interrupted) {
+                    interruptIdRef.current++;
                     for (const source of audioSourcesRef.current.values()) {
                         source.stop();
                     }
@@ -236,7 +256,7 @@ Analyze the candidate's response. Provide brief (1-2 sentences), constructive, a
             speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } } },
             systemInstruction: config.systemInstruction,
             generationConfig: {
-              maxOutputTokens: 256,
+              maxOutputTokens: 1024,
               temperature: 0.9,
             },
             outputAudioTranscription: {},
@@ -248,7 +268,10 @@ Analyze the candidate's response. Provide brief (1-2 sentences), constructive, a
 
       } catch (e) {
         if (!isMounted) return;
-        console.error("Initialization failed:", e);
+        const errStrConsole = String(e) + " " + JSON.stringify(e, Object.getOwnPropertyNames(e || {}));
+        if (!(errStrConsole.includes("429") || errStrConsole.toLowerCase().includes("quota"))) {
+          console.error("Initialization failed:", e);
+        }
         let errorMessage = e instanceof Error ? e.message : "An unknown error occurred during setup.";
         const errStr = String(e) + " " + JSON.stringify(e, Object.getOwnPropertyNames(e || {}));
         if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {

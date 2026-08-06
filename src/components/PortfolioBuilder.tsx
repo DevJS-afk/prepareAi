@@ -316,7 +316,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
           `;
 
           const response = await ai.models.generateContent({
-              model: 'gemini-1.5-flash',
+              model: 'gemini-3.1-pro-preview',
               contents: [contentPart, { text: prompt }],
               config: { responseMimeType: 'application/json' }
           });
@@ -353,7 +353,10 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
           setSelectedCvId('');
 
       } catch (error) {
-          console.error("Import failed", error);
+          const errStrConsole = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
+          if (!(errStrConsole.includes("429") || errStrConsole.toLowerCase().includes("quota"))) {
+            console.error("Import failed", error);
+          }
           const errStr = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
           if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
               alert("We have temporarily exceeded our AI service quota. Please try again later.");
@@ -385,7 +388,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
         const sectionsOrderDesc = visibleSections.map((s, index) => `${index + 1}. Section ID: "${s.id}" - ${s.name}`).join('\n');
 
         const themePromptDetails = {
-            'cosmic-slate': 'Theme: Cosmic Slate. Deep high-tech dark mode. Dark background (#0A0E1A), glassmorphism cards (bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10), glowing purple and electric indigo accents, clean typography with high contrast white headings, smooth hover states with subtle scale/shadows.',
+            'cosmic-slate': 'Theme: Cosmic Slate. Deep high-tech dark mode. Dark background (#0A0E1A), glassmorphism cards (bg-slate-50 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10), glowing purple and electric indigo accents, clean typography with high contrast white headings, smooth hover states with subtle scale/shadows.',
             'cyberpunk-neon': 'Theme: Cyberpunk Neon. High-octane sci-fi dark style. Pitch black background (#030303), blazing neon-pink and electric-cyan accents, glowing neon card borders (border border-pink-500/30 shadow-[0_0_15px_rgba(244,63,94,0.1)]), monospace headers, ultra-sleek high-contrast buttons.',
             'minimalist-light': 'Theme: Minimalist Light. High-end, pristine and elegant. Clean warm white background (#F9FAFB), crisp dark charcoal headings (#111827) with light grey secondary text, thin elegant divider lines, expansive white space, minimal card borders, extremely professional editorial aesthetic.',
             'forest-mint': 'Theme: Forest Mint. Natural, calming and sophisticated organic look. Luxurious dark forest green background (#06140E), warm light-cream text (#F4EFEB), rich emerald green and minty fresh accents (#10B981), extra smooth rounded cards (#0B2319), giving an organic premium bio vibe.'
@@ -423,7 +426,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
         `;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-3.1-pro-preview',
             contents: prompt,
         });
         
@@ -432,7 +435,10 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
         setGeneratedCode(cleanHtml);
 
     } catch (error) {
-        console.error(error);
+        const errStrConsole2 = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
+        if (!(errStrConsole2.includes("429") || errStrConsole2.toLowerCase().includes("quota"))) {
+            console.error(error);
+        }
         const errStr = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
         if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
             alert("We have temporarily exceeded our AI service quota. Please try again later.");
@@ -516,7 +522,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
         {/* Import Modal */}
         {isImporting && (
              <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                <div className="bg-[#1a1a1a] w-full max-w-lg rounded-2xl border border-slate-200 dark:border-white/10 p-6 shadow-2xl flex flex-col max-h-[80vh]">
+                <div className="bg-white dark:bg-[#1a1a1a] w-full max-w-lg rounded-2xl border border-slate-200 dark:border-white/10 p-6 shadow-2xl flex flex-col max-h-[80vh]">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white">Load Data from Resume</h3>
                          <button onClick={() => setIsImporting(false)} className="text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white">
@@ -532,16 +538,16 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
                                 onChange={(e) => { setSelectedCvId(e.target.value); setCustomImportText(''); setImportFileBase64(null); }}
                                 className="w-full bg-slate-200/70 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-lg p-3 text-slate-900 dark:text-white focus:border-brand-yellow outline-none cursor-pointer"
                             >
-                                <option value="" className="bg-white dark:bg-slate-900 text-white">-- Choose a Saved CV --</option>
+                                <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">-- Choose a Saved CV --</option>
                                 {savedCVs.map(cv => (
-                                    <option key={cv.id} value={cv.id} className="bg-white dark:bg-slate-900 text-white">{cv.title}</option>
+                                    <option key={cv.id} value={cv.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{cv.title}</option>
                                 ))}
                             </select>
                         </div>
                         <div className="flex items-center gap-2 text-slate-500 dark:text-gray-500 text-sm">
-                            <div className="h-px flex-1 bg-white/10"></div>
+                            <div className="h-px flex-1 bg-slate-200 dark:bg-white/10"></div>
                             <span>OR</span>
-                            <div className="h-px flex-1 bg-white/10"></div>
+                            <div className="h-px flex-1 bg-slate-200 dark:bg-white/10"></div>
                         </div>
                          <div>
                             <div className="flex justify-between items-center mb-2">
@@ -589,7 +595,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
         {/* Header */}
         <div className="h-16 border-b border-slate-200 dark:border-white/10 bg-slate-200/30 dark:bg-black/20 flex items-center justify-between px-6 shrink-0 backdrop-blur-md">
             <div className="flex items-center gap-4">
-                <button onClick={onBack} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white">
+                <button onClick={onBack} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                 </button>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">AI Portfolio Builder</h2>
@@ -597,7 +603,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
             <div className="flex items-center gap-3">
                  <button 
                     onClick={() => setIsImporting(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg text-sm font-medium transition-colors text-gray-300"
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg text-sm font-medium transition-colors text-gray-300"
                  >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M9 7h12m-6 0v8" /></svg>
                     Load from Resume
@@ -613,7 +619,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
                         </button>
                          <button 
                             onClick={handleDownload}
-                            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors text-slate-900 dark:text-white"
+                            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 rounded-lg text-sm font-medium transition-colors text-slate-900 dark:text-white"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                             Download HTML
@@ -659,7 +665,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
                                     className={`flex flex-col text-left p-2 border text-xs transition-all duration-200 rounded-xl ${
                                         selectedTheme === theme.id 
                                             ? 'bg-white/10 border-brand-yellow text-slate-900 dark:text-white shadow-lg shadow-brand-yellow/5' 
-                                            : 'bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-gray-400 hover:bg-white/10'
+                                            : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-white/10'
                                     }`}
                                 >
                                     <div className="flex items-center gap-1.5 font-bold mb-1">
@@ -710,7 +716,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
                                     <button 
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); toggleSectionVisibility(section.id); }}
-                                        className={`p-1 rounded-lg transition-colors shrink-0 cursor-pointer ${section.visible ? 'text-slate-600 dark:text-gray-400 hover:text-brand-yellow hover:bg-white/5' : 'text-gray-600 hover:text-slate-900 dark:text-white hover:bg-white/5'}`}
+                                        className={`p-1 rounded-lg transition-colors shrink-0 cursor-pointer ${section.visible ? 'text-slate-600 dark:text-gray-400 hover:text-brand-yellow hover:bg-slate-100 dark:hover:bg-white/5' : 'text-gray-600 hover:text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}
                                         title={section.visible ? 'Hide section' : 'Show section'}
                                     >
                                         {section.visible ? (
@@ -736,14 +742,14 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
                         <span className="w-2 h-2 rounded-full bg-brand-yellow"></span>
                         About You
                     </h3>
-                    <input type="text" placeholder="Full Name" value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow" />
-                    <input type="text" placeholder="Job Title (e.g. UX Designer)" value={profile.title} onChange={e => setProfile({...profile, title: e.target.value})} className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow" />
-                    <textarea placeholder="Short Bio" value={profile.bio} onChange={e => setProfile({...profile, bio: e.target.value})} className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow h-24 resize-none" />
+                    <input type="text" placeholder="Full Name" value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow" />
+                    <input type="text" placeholder="Job Title (e.g. UX Designer)" value={profile.title} onChange={e => setProfile({...profile, title: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow" />
+                    <textarea placeholder="Short Bio" value={profile.bio} onChange={e => setProfile({...profile, bio: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow h-24 resize-none" />
                     
                     {/* Hero Image Input */}
                     <div className="flex gap-2 items-center">
-                        <input type="text" placeholder="Hero Image URL (Optional)" value={profile.heroImage} onChange={e => setProfile({...profile, heroImage: e.target.value})} className="flex-1 bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow" />
-                        <label className="cursor-pointer p-2 bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg transition-colors text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white flex items-center justify-center h-[42px] w-[42px]" title="Upload Hero Image">
+                        <input type="text" placeholder="Hero Image URL (Optional)" value={profile.heroImage} onChange={e => setProfile({...profile, heroImage: e.target.value})} className="flex-1 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow" />
+                        <label className="cursor-pointer p-2 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg transition-colors text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white flex items-center justify-center h-[42px] w-[42px]" title="Upload Hero Image">
                             {uploadingHero ? (
                                 <div className="w-4 h-4 border-2 border-brand-yellow/50 border-t-brand-yellow rounded-full animate-spin"></div>
                             ) : (
@@ -759,10 +765,10 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
                         <span className="w-2 h-2 rounded-full bg-brand-blue"></span>
                         Contact & Skills
                     </h3>
-                    <input type="text" placeholder="Email" value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow" />
-                    <input type="text" placeholder="GitHub URL" value={profile.github} onChange={e => setProfile({...profile, github: e.target.value})} className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow" />
-                    <input type="text" placeholder="LinkedIn URL" value={profile.linkedin} onChange={e => setProfile({...profile, linkedin: e.target.value})} className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow" />
-                    <textarea placeholder="Skills (comma separated)" value={skills} onChange={e => setSkills(e.target.value)} className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow h-20 resize-none" />
+                    <input type="text" placeholder="Email" value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow" />
+                    <input type="text" placeholder="GitHub URL" value={profile.github} onChange={e => setProfile({...profile, github: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow" />
+                    <input type="text" placeholder="LinkedIn URL" value={profile.linkedin} onChange={e => setProfile({...profile, linkedin: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow" />
+                    <textarea placeholder="Skills (comma separated)" value={skills} onChange={e => setSkills(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-brand-yellow h-20 resize-none" />
                 </div>
 
                 <div className="space-y-4 border-t border-slate-200 dark:border-white/5 pt-4">
@@ -795,7 +801,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
                                   <input type="text" placeholder="Project Title" value={p.title} onChange={e => handleUpdateProject(p.id, 'title', e.target.value)} className="w-full bg-transparent border-b border-slate-200 dark:border-white/10 px-2 py-1 text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-brand-yellow" />
                              </div>
                              <textarea placeholder="Description" value={p.description} onChange={e => handleUpdateProject(p.id, 'description', e.target.value)} className="w-full bg-transparent px-2 py-1 text-sm text-gray-300 outline-none resize-none h-16" />
-                             <input type="text" placeholder="Project Link" value={p.link} onChange={e => handleUpdateProject(p.id, 'link', e.target.value)} className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-xs text-slate-900 dark:text-white outline-none" />
+                             <input type="text" placeholder="Project Link" value={p.link} onChange={e => handleUpdateProject(p.id, 'link', e.target.value)} className="w-full bg-slate-50 dark:bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-xs text-slate-900 dark:text-white outline-none" />
                              
                              {/* Project Image Upload */}
                              <div className="flex gap-2 items-center">
@@ -804,9 +810,9 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
                                     placeholder="Image URL" 
                                     value={p.imageUrl} 
                                     onChange={e => handleUpdateProject(p.id, 'imageUrl', e.target.value)} 
-                                    className="flex-1 bg-white/5 border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-xs text-slate-900 dark:text-white outline-none" 
+                                    className="flex-1 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-xs text-slate-900 dark:text-white outline-none" 
                                  />
-                                 <label className="cursor-pointer p-1.5 bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded transition-colors text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white flex items-center justify-center" title="Upload Project Image">
+                                 <label className="cursor-pointer p-1.5 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded transition-colors text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white flex items-center justify-center" title="Upload Project Image">
                                     {uploadingProjectId === p.id ? (
                                         <div className="w-3 h-3 border-2 border-brand-yellow/50 border-t-brand-yellow rounded-full animate-spin"></div>
                                     ) : (
@@ -835,7 +841,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
             </div>
 
             {/* Right Panel: Preview */}
-            <div className="flex-1 bg-[#1a1a1a] p-0 overflow-hidden relative flex flex-col">
+            <div className="flex-1 bg-white dark:bg-[#1a1a1a] p-0 overflow-hidden relative flex flex-col">
                 {generatedCode && (
                     <div className="bg-black/60 backdrop-blur-md px-4 py-2 border-b border-slate-200 dark:border-white/5 flex items-center justify-between z-10 shrink-0">
                         <div className="flex items-center gap-1.5">
@@ -846,21 +852,21 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
                             <button
                                 type="button"
                                 onClick={() => setPreviewMode('desktop')}
-                                className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1.5 ${previewMode === 'desktop' ? 'bg-brand-yellow text-black shadow-md' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white hover:bg-white/5'}`}
+                                className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1.5 ${previewMode === 'desktop' ? 'bg-brand-yellow text-black shadow-md' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}
                             >
                                 🖥️ Desktop
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setPreviewMode('tablet')}
-                                className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1.5 ${previewMode === 'tablet' ? 'bg-brand-yellow text-black shadow-md' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white hover:bg-white/5'}`}
+                                className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1.5 ${previewMode === 'tablet' ? 'bg-brand-yellow text-black shadow-md' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}
                             >
                                 📟 Tablet
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setPreviewMode('phone')}
-                                className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1.5 ${previewMode === 'phone' ? 'bg-brand-yellow text-black shadow-md' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white hover:bg-white/5'}`}
+                                className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1.5 ${previewMode === 'phone' ? 'bg-brand-yellow text-black shadow-md' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}
                             >
                                 📱 Phone
                             </button>
