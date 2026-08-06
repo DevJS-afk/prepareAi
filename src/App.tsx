@@ -6,6 +6,7 @@ import { supabase } from './services/firebaseClient';
 import { useTranslation } from 'react-i18next';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Dashboard from './components/WelcomeScreen'; 
 
 import InterviewSetup from './components/InterviewSetup';
@@ -600,6 +601,7 @@ const App: React.FC = () => {
        </footer>
        <CookieBanner />
        <Analytics />
+       <SpeedInsights />
     </div>
   );
 };
