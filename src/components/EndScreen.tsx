@@ -4,7 +4,7 @@ import html2canvas from 'html2canvas';
 import { supabase } from '../services/firebaseClient';
 import type { TranscriptionEntry, FeedbackEntry, InterviewConfig, SuggestedResource, InterviewReport, JobOffer } from '../types';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 interface EndScreenProps {
   onRestart: () => void;
