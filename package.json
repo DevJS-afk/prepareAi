@@ -15,6 +15,7 @@
     "@supabase/supabase-js": "^2.39.8",
     "@types/canvas-confetti": "^1.9.0",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "canvas-confetti": "^1.9.4",
     "cheerio": "^1.2.0",
     "dotenv": "^17.4.1",
