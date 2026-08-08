@@ -6,7 +6,6 @@ import { InterviewStatus, InterviewConfig, TranscriptionEntry, FeedbackEntry, Sa
 import { supabase } from './services/firebaseClient';
 import { useTranslation } from 'react-i18next';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
-import { Analytics } from '@vercel/analytics/react';
 import Dashboard from './components/WelcomeScreen'; 
 
 import InterviewSetup from './components/InterviewSetup';
