@@ -27,14 +27,7 @@ import {
 } from 'firebase/auth';
 
 // Firebase credentials from firebase-applet-config.json
-const firebaseConfig = {
-  projectId: "gen-lang-client-0172497386",
-  appId: "1:779554654367:web:cecad1fb189a14a283faaa",
-  apiKey: "AIzaSyD05COAiGqXYrgngi6mJ270eiDHD70pSWs",
-  authDomain: "gen-lang-client-0172497386.firebaseapp.com",
-  storageBucket: "gen-lang-client-0172497386.firebasestorage.app",
-  messagingSenderId: "779554654367"
-};
+import firebaseConfig from '../../firebase-applet-config.json';
 
 export const firebaseApp = initializeApp(firebaseConfig);
 
