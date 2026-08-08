@@ -42,6 +42,15 @@ const AboutUs: React.FC<AboutUsProps> = ({ onBack }) => {
                   </p>
               </div>
 
+              <div className="glass-panel p-8 rounded-2xl border-l-4 border-brand-green my-10">
+                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{t('AboutUs.save_time')}</h3>
+                  <p className="text-slate-600 dark:text-gray-300">
+                      <Trans i18nKey="AboutUs.save_time_desc">
+                        Our platform is built for both <strong className="text-slate-900 dark:text-white">job seekers</strong> and <strong className="text-slate-900 dark:text-white">companies</strong> to stop wasting time. By utilizing advanced AI for initial screening and practice, we streamline the hiring process, ensuring candidates are fully prepared and companies connect with the right talent faster.
+                      </Trans>
+                  </p>
+              </div>
+
               <h2 className="text-3xl font-bold text-slate-900 dark:text-white pt-8">{t('AboutUs.the_team')}</h2>
               <p>
                   <Trans i18nKey="AboutUs.team_description">

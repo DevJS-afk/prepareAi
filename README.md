@@ -57,15 +57,48 @@ STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
 ```
 
 ### 2. Firebase Setup
-This project uses Firebase for authentication and database storage.
+This project uses Firebase for authentication, database storage, and file storage. Please follow these detailed steps to set up your Firebase project:
 
-1. Create a Firebase project in the [Firebase Console](https://console.firebase.google.com/).
-2. Enable **Firestore Database** and **Authentication** (Email/Password).
-3. Enable **Firebase Storage**.
-4. Register a web app and obtain your Firebase configuration. Replace the contents of `firebase-applet-config.json` with your actual project config.
-5. Deploy the security rules by copying the contents of `firestore.rules` to your Firebase console or deploying via the Firebase CLI:
-   ```bash
-   firebase deploy --only firestore:rules
+1. **Create a Firebase Project**:
+   - Go to the [Firebase Console](https://console.firebase.google.com/).
+   - Click **Add project** (or **Create a project**).
+   - Enter a project name (e.g., `prepareAI`) and click **Continue**.
+   - (Optional) Enable Google Analytics for the project, then click **Create project**.
+   - Once the project is ready, click **Continue**.
+
+2. **Enable Authentication**:
+   - In the Firebase Console, go to **Build** > **Authentication** in the left sidebar.
+   - Click **Get started**.
+   - Go to the **Sign-in method** tab.
+   - Click **Email/Password**, enable it, and click **Save**.
+
+3. **Enable Firestore Database**:
+   - Go to **Build** > **Firestore Database** in the left sidebar.
+   - Click **Create database**.
+   - Select a location (e.g., `nam5 (us-central)`).
+   - Start in **Production mode** (we will deploy security rules later).
+   - Click **Create**.
+
+4. **Enable Firebase Storage**:
+   - Go to **Build** > **Storage** in the left sidebar.
+   - Click **Get started**.
+   - Start in **Production mode**.
+   - Click **Next**, choose your Cloud Storage location, and click **Done**.
+
+5. **Register a Web App & Get Configuration**:
+   - Go to the Project Overview page (click the gear icon > **Project settings**).
+   - In the "Your apps" section, click the **Web** icon (`</>`).
+   - Register the app with a nickname (e.g., `prepareAI Web App`).
+   - You don't need to check Firebase Hosting right now. Click **Register app**.
+   - You will see a `firebaseConfig` object. Copy the JSON part inside `firebaseConfig`.
+   - In your project's root directory, open `firebase-applet-config.json` and replace its contents with your actual configuration (make sure it's valid JSON format).
+
+6. **Deploy Security Rules**:
+   - To ensure your database and storage are secure, you need to deploy the provided rules.
+   - You can copy the contents of `firestore.rules` and paste it into the **Rules** tab of Firestore in the Firebase Console and click **Publish**.
+   - Alternatively, if you have the Firebase CLI installed, run:
+     ```bash
+     firebase deploy --only firestore:rules
    ```
 
 ### 3. Admin Account Creation
