@@ -304,7 +304,7 @@ const EndScreen: React.FC<EndScreenProps> = ({
   ]) : [];
 
   return (
-    <div id="report-container" className="w-full max-w-7xl mx-auto space-y-8 pb-10">
+    <div id="report-container" className="w-full mx-auto space-y-8 pb-10">
       <div className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 animate-fade-in">
          <div className="flex items-center gap-6">
              <div>

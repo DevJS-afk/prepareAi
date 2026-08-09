@@ -490,7 +490,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
   // Render Interview Report View
   if (selectedInterview) {
     return (
-      <div className="w-full max-w-7xl mx-auto space-y-6">
+      <div className="w-full mx-auto space-y-6">
         <button onClick={() => setSelectedInterview(null)} className="flex items-center gap-2 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white transition-colors font-medium">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" /></svg>
             Back to Dashboard
@@ -515,7 +515,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
       const isHtmlPreview = !isEditingDoc && (viewingDoc.type === 'cv' || viewingDoc.type === 'portfolio');
       return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
-            <div className="bg-white text-black w-full max-w-5xl h-[85vh] max-h-[85vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl relative">
+            <div className="bg-white text-black w-full h-[85vh] max-h-[85vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl relative">
                 
                 {/* Modal Header */}
                 <div className="p-4 bg-gray-100 border-b flex justify-between items-center shrink-0">
@@ -624,7 +624,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-8 animate-fade-in pb-12">
+    <div className="w-full mx-auto space-y-8 animate-fade-in pb-12">
       <div className="flex items-center gap-3">
           <button onClick={onBack} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>

@@ -19,7 +19,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate, userName, isAdmin, pe
   const isCandidateMode = !!pendingConfig;
 
   return (
-    <div className="w-full max-w-7xl mx-auto animate-slide-up py-16 px-4 sm:px-6 lg:px-8">
+    <div className="w-full mx-auto animate-slide-up py-16 px-4 sm:px-6 lg:px-8">
       {/* Hero Section */}
       <div className="text-center mb-16">
         <h1 className="text-5xl md:text-7xl font-display font-extrabold text-slate-900 dark:text-white mb-6 tracking-tight">

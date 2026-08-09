@@ -284,7 +284,7 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
 
   if (selectedReportInvite && selectedReportInvite.interviewData) {
       return (
-          <div className="w-full max-w-7xl mx-auto space-y-6 animate-fade-in pb-12">
+          <div className="w-full mx-auto space-y-6 animate-fade-in pb-12">
               <button onClick={() => setSelectedReportInvite(null)} className="flex items-center gap-2 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white transition-colors font-medium mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" /></svg>
                 {t('InterviewerDashboard.backToCandidates')}
@@ -317,7 +317,7 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 animate-fade-in pb-12">
+    <div className="w-full mx-auto space-y-8 animate-fade-in pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button onClick={onBack} className="p-2 rounded-lg hover:bg-white/10 transition-colors">

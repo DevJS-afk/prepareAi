@@ -100,7 +100,7 @@ const MotivationLetter: React.FC<MotivationLetterProps> = ({ onBack }) => {
   };
 
   return (
-     <div className="w-full max-w-5xl glass-panel rounded-2xl p-6 md:p-10 animate-fade-in flex flex-col h-[85vh]">
+     <div className="w-full glass-panel rounded-2xl p-6 md:p-10 animate-fade-in flex flex-col h-[85vh]">
          <div className="flex items-center justify-between mb-6 shrink-0">
             <div className="flex items-center gap-3">
                 <button onClick={onBack} className="p-2 rounded-lg hover:bg-white/10 transition-colors">

@@ -576,7 +576,7 @@ const formatContent = (text: any) => {
         
         {showAtsModal && (
             <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-                <div className="bg-white dark:bg-[#1a1a1a] w-full max-w-4xl rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col max-h-[85vh] shadow-2xl overflow-hidden">
+                <div className="bg-white dark:bg-[#1a1a1a] w-full rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col max-h-[85vh] shadow-2xl overflow-hidden">
                     <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-slate-200/70 dark:bg-black/40">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg bg-brand-blue/20 flex items-center justify-center text-brand-blue">

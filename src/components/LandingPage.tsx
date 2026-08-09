@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface LandingPageProps {
   onLogin: () => void;
@@ -12,6 +13,7 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, onPrivacy, onTerms, theme, toggleTheme }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t, i18n } = useTranslation();
 
   const scrollToPricing = () => {
@@ -29,54 +31,104 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
       </div>
 
       {/* Navigation */}
-      <nav className="w-full max-w-7xl mx-auto px-6 py-6 flex justify-between items-center z-50">
-        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <img src="/logo.svg" alt="prepareAI logo" className="h-10 w-auto group-hover:scale-105 transition-transform duration-300" />
+      <nav className="w-full mx-auto px-6 py-6 z-50">
+        <div className="flex justify-between items-center w-full">
+            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                <img src="/logo.svg" alt="prepareAI logo" className="h-10 w-auto group-hover:scale-105 transition-transform duration-300" />
+            </div>
+            
+            {/* Mobile Toggle */}
+            <div className="flex items-center gap-2 md:hidden">
+              <button 
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="p-2 text-slate-600 dark:text-gray-300"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  {isMenuOpen ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  )}
+                </svg>
+              </button>
+            </div>
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-6 md:gap-8">
+                <div className="flex items-center gap-6">
+                    <button onClick={onAbout} className="text-sm font-medium text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors relative group">
+                        About
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-blue transition-all group-hover:w-full"></span>
+                    </button>
+                    <button onClick={scrollToPricing} className="text-sm font-medium text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors relative group">
+                        Pricing
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-purple transition-all group-hover:w-full"></span>
+                    </button>
+                </div>
+                <div className="flex items-center gap-3 md:gap-4">
+                    <button onClick={onLogin} className="text-sm font-bold text-slate-700 dark:text-white hover:text-brand-blue dark:hover:text-brand-blue transition-colors">{t('landing.login')}</button>
+                    <button onClick={onSignup} className="px-4 py-2 bg-slate-950 text-white dark:bg-white dark:text-black rounded-lg text-sm font-bold hover:bg-slate-800 dark:hover:bg-gray-100 transition-all shadow-md dark:shadow-[0_0_20px_rgba(255,255,255,0.2)]">{t('landing.getStarted')}</button>
+                    
+                    {toggleTheme && (<>
+                      <button 
+                        onClick={toggleTheme} 
+                        className="p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-gray-300 transition-colors duration-200 flex items-center justify-center"
+                        aria-label="Toggle Theme"
+                        id="landing-theme-toggle"
+                      >
+                        {theme === 'dark' ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14.5 12a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                          </svg>
+                        )}
+                      </button>
+                      <LanguageSwitcher />
+                    </>)}
+                </div>
+            </div>
         </div>
-        <div className="flex items-center gap-6 md:gap-8">
-            <div className="hidden md:flex items-center gap-6">
-                <button onClick={onAbout} className="text-sm font-medium text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors relative group">
+        
+        {/* Mobile Navigation Menu */}
+        {isMenuOpen && (
+            <div className="md:hidden flex flex-col gap-4 pt-4 mt-4 border-t border-slate-200 dark:border-white/10 animate-fade-in w-full">
+                <button onClick={() => { onAbout(); setIsMenuOpen(false); }} className="w-full text-left py-2 text-sm font-medium text-slate-600 dark:text-gray-400">
                     About
-                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-blue transition-all group-hover:w-full"></span>
                 </button>
-                <button onClick={scrollToPricing} className="text-sm font-medium text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors relative group">
+                <button onClick={() => { scrollToPricing(); setIsMenuOpen(false); }} className="w-full text-left py-2 text-sm font-medium text-slate-600 dark:text-gray-400">
                     Pricing
-                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-purple transition-all group-hover:w-full"></span>
                 </button>
-            </div>
-            <div className="flex items-center gap-3 md:gap-4">
-                <button onClick={onLogin} className="text-sm font-bold text-slate-700 dark:text-white hover:text-brand-blue dark:hover:text-brand-blue transition-colors">{t('landing.login')}</button>
-                <button onClick={onSignup} className="px-4 py-2 bg-slate-950 text-white dark:bg-white dark:text-black rounded-lg text-sm font-bold hover:bg-slate-800 dark:hover:bg-gray-100 transition-all shadow-md dark:shadow-[0_0_20px_rgba(255,255,255,0.2)]">{t('landing.getStarted')}</button>
+                <button onClick={() => { onLogin(); setIsMenuOpen(false); }} className="w-full text-left py-2 text-sm font-bold text-slate-700 dark:text-white">
+                    {t('landing.login')}
+                </button>
+                <button onClick={() => { onSignup(); setIsMenuOpen(false); }} className="w-full text-left py-2 text-sm font-bold text-brand-blue">
+                    {t('landing.getStarted')}
+                </button>
                 
-                {toggleTheme && (<>
-                  <button 
-                    onClick={toggleTheme} 
-                    className="p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-gray-300 transition-colors duration-200 flex items-center justify-center"
-                    aria-label="Toggle Theme"
-                    id="landing-theme-toggle"
-                  >
-                    {theme === 'dark' ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14.5 12a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                      </svg>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                      </svg>
-                    )}
-                  </button>
-                  <select
-                      className="bg-transparent border-none text-slate-600 dark:text-gray-300 text-sm font-medium focus:ring-0 cursor-pointer outline-none uppercase"
-                      value={i18n.language.split('-')[0]}
-                      onChange={(e) => i18n.changeLanguage(e.target.value)}
-                    >
-                      <option value="en" className="bg-white dark:bg-slate-800">EN</option>
-                      <option value="fr" className="bg-white dark:bg-slate-800">FR</option>
-                      <option value="es" className="bg-white dark:bg-slate-800">ES</option>
-                  </select>
-                </>)}
+                {toggleTheme && (
+                    <div className="flex items-center gap-4 pt-2 w-full">
+                      <button 
+                        onClick={toggleTheme} 
+                        className="p-2 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-gray-300 flex items-center justify-center"
+                      >
+                        {theme === 'dark' ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14.5 12a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                          </svg>
+                        )}
+                      </button>
+                      <LanguageSwitcher />
+                    </div>
+                )}
             </div>
-        </div>
+        )}
       </nav>
 
       {/* Hero Section */}
@@ -89,7 +141,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
               <span className="text-xs font-semibold text-slate-700 dark:text-gray-300 uppercase tracking-wide">Powered by Gemini 2.0</span>
           </div>
           
-          <h1 className="text-5xl md:text-8xl font-display font-bold text-slate-900 dark:text-white mb-8 tracking-tight leading-[1.1] max-w-5xl animate-slide-up text-glow">
+          <h1 className="text-5xl md:text-8xl font-display font-bold text-slate-900 dark:text-white mb-8 tracking-tight leading-[1.1] animate-slide-up text-glow">
               {t('landing.heroTitle1')} <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-blue via-brand-purple to-brand-red">{t('landing.heroTitle2')}</span>
           </h1>
@@ -107,7 +159,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
           </div>
 
           {/* Feature Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-32 max-w-7xl w-full animate-slide-up px-4" style={{ animationDelay: '0.3s' }}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-32 w-full animate-slide-up px-4" style={{ animationDelay: '0.3s' }}>
               <div className="glass-panel p-8 rounded-3xl text-left border border-slate-200/80 dark:border-white/5 hover:border-brand-blue/50 dark:hover:border-brand-blue/50 transition-all duration-500 hover:-translate-y-2 group shadow-sm">
                   <div className="w-14 h-14 bg-brand-blue/10 rounded-2xl flex items-center justify-center mb-6 text-brand-blue group-hover:scale-110 transition-transform duration-500 border border-brand-blue/20">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
@@ -132,7 +184,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
           </div>
 
           {/* Trusted By / Collab Section */}
-          <div className="w-full max-w-7xl mx-auto mt-32 px-4 text-center animate-slide-up" style={{ animationDelay: '0.4s' }}>
+          <div className="w-full mx-auto mt-32 px-4 text-center animate-slide-up" style={{ animationDelay: '0.4s' }}>
               <p className="text-sm font-semibold text-slate-500 dark:text-gray-500 uppercase tracking-widest mb-10">Trusted by candidates who landed offers at</p>
               <div className="flex flex-wrap justify-center items-center gap-10 md:gap-20 opacity-60 dark:opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
                   <span className="text-2xl font-bold font-sans text-slate-900 dark:text-white">Google</span>
@@ -144,7 +196,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
           </div>
 
           {/* Testimonials Section */}
-          <div className="w-full max-w-7xl mx-auto mt-32 mb-10 px-4 animate-slide-up" style={{ animationDelay: '0.5s' }}>
+          <div className="w-full mx-auto mt-32 mb-10 px-4 animate-slide-up" style={{ animationDelay: '0.5s' }}>
               <div className="text-center mb-16">
                   <h2 className="text-4xl md:text-5xl font-display font-bold text-slate-900 dark:text-white mb-6 animate-fade-in">Don't just take our word for it</h2>
                   <p className="text-slate-600 dark:text-gray-400 text-lg">Join thousands of candidates who transformed their interview skills.</p>
@@ -198,7 +250,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
 
       {/* Pricing Section */}
       <section id="pricing" className="w-full py-24 relative z-10 border-t border-slate-200/80 dark:border-white/5 bg-slate-100/50 dark:bg-black/40 backdrop-blur-sm transition-colors duration-300">
-         <div className="max-w-7xl mx-auto px-6">
+         <div className="mx-auto px-6">
               <div className="text-center mb-20 animate-slide-up">
                   <h2 className="text-4xl md:text-5xl font-display font-bold text-slate-950 dark:text-white mb-6">Simple, Transparent Pricing</h2>
                   <p className="text-slate-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">Invest in your career. Start for free, upgrade when you're ready to master your skills.</p>
@@ -259,7 +311,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
       </section>
 
       <footer className="w-full border-t border-slate-200/80 dark:border-white/5 py-10 text-center text-slate-500 dark:text-gray-400 text-sm relative z-10 bg-slate-100 dark:bg-black/40 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
+          <div className="mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
               <p>&copy; {new Date().getFullYear()} prepareAI. Built by DevJs.</p>
               <div className="flex gap-8 mt-4 md:mt-0">
                   <button onClick={onAbout} className="hover:text-slate-900 dark:hover:text-white transition-colors">About</button>

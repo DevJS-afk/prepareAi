@@ -234,7 +234,7 @@ const InterviewSetup: React.FC<InterviewSetupProps> = ({ onStart, onBack }) => {
   ];
 
   return (
-    <div className="w-full max-w-5xl glass-panel rounded-2xl shadow-2xl overflow-hidden animate-slide-up">
+    <div className="w-full glass-panel rounded-2xl shadow-2xl overflow-hidden animate-slide-up">
       {/* Header / Progress */}
       <div className="bg-slate-200/30 dark:bg-black/20 p-6 border-b border-slate-200 dark:border-white/5 relative">
          <button onClick={onBack} className="absolute top-6 left-6 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white transition-colors">

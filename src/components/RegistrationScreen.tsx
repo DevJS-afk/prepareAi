@@ -109,7 +109,11 @@ const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ onSwitchToLogin
       if (error) throw error;
     } catch (error: any) {
       console.error("Google Signup Error:", error);
-      setError(error.message);
+      if (error.message?.includes('popup-closed-by-user') || error.message?.includes('cancelled-popup-request') || error.code?.includes('popup-closed-by-user') || error.code?.includes('cancelled-popup-request')) {
+         // Ignore cancelled popup
+      } else {
+         setError(error.message);
+      }
       setLoading(false);
     }
   };

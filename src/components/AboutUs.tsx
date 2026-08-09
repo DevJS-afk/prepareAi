@@ -12,14 +12,14 @@ const AboutUs: React.FC<AboutUsProps> = ({ onBack }) => {
     <div className="min-h-screen w-full flex flex-col relative overflow-hidden animate-fade-in bg-slate-50 dark:bg-dark-bg transition-colors duration-300">
         
       {/* Navbar */}
-      <nav className="w-full max-w-7xl mx-auto px-6 py-6 flex justify-between items-center z-50">
+      <nav className="w-full mx-auto px-6 py-6 flex justify-between items-center z-50">
         <button onClick={onBack} className="flex items-center gap-2 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" /></svg>
             {t('AboutUs.back_to_home')}
         </button>
       </nav>
 
-      <main className="flex-grow max-w-4xl mx-auto px-6 py-12 text-slate-900 dark:text-white relative z-10">
+      <main className="flex-grow mx-auto px-6 py-12 text-slate-900 dark:text-white relative z-10">
           <h1 className="text-4xl md:text-6xl font-extrabold mb-8 tracking-tight">{t('AboutUs.our_mission')}</h1>
           
           <div className="space-y-8 text-lg text-slate-600 dark:text-gray-300 leading-relaxed">
