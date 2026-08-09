@@ -29,7 +29,7 @@ import CookieBanner from './components/CookieBanner';
 import LanguageSwitcher from './components/LanguageSwitcher';
 
 const App: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
