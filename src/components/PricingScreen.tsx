@@ -10,13 +10,14 @@ interface PricingScreenProps {
 }
 
 const PricingScreen: React.FC<PricingScreenProps> = ({ onBack, currentTier, onUpgrade }) => {
+  const [billingCycle, setBillingCycle] = React.useState<"monthly" | "yearly">("monthly");
   
   const handleSelectPlan = (tier: SubscriptionTier, price: string, name: string) => {
     if (tier === currentTier) return;
     onUpgrade(tier, price, name);
   };
 
-  const PlanCard = ({ tier, price, name, features, popular = false }: { tier: SubscriptionTier, price: string, name: string, features: string[], popular?: boolean }) => {
+  const PlanCard = ({ tier, price, name, features, popular = false, isYearly = false }: { tier: SubscriptionTier, price: string, name: string, features: string[], popular?: boolean, isYearly?: boolean }) => {
     let sub = "Perfect for trying PrepareAI";
     if (tier === 'pro') sub = "For serious preparation";
     if (tier === 'recruiter') sub = "For teams & organizations";
@@ -32,7 +33,7 @@ const PricingScreen: React.FC<PricingScreenProps> = ({ onBack, currentTier, onUp
              <h3 className={`text-2xl font-display font-bold mb-2 ${popular ? 'text-brand-purple' : 'text-slate-900 dark:text-white'}`}>{name}</h3><p className="text-slate-500 dark:text-gray-400 text-sm mb-6">{sub}</p>
              <div className="flex items-baseline gap-1 mb-8">
                  <span className="text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">{price}</span>
-                 {price !== 'Free' && <span className="text-slate-500 dark:text-gray-400 font-medium">/month</span>}
+                 {price !== '$0' && <span className="text-slate-500 dark:text-gray-400 font-medium">{isYearly ? "/year" : "/month"}</span>}
              </div>
              
              <ul className="space-y-4 mb-8 flex-1">
@@ -75,9 +76,9 @@ const PricingScreen: React.FC<PricingScreenProps> = ({ onBack, currentTier, onUp
 
        <div className="flex justify-center mb-16 animate-slide-up" style={{ animationDelay: '0.1s' }}>
            <div className="bg-slate-200/50 dark:bg-white/5 p-1 rounded-full border border-slate-300/50 dark:border-white/10 flex items-center inline-flex">
-               <button className="bg-brand-purple text-white px-6 py-2 rounded-full text-sm font-bold shadow-md">Monthly</button>
-               <button className="text-slate-600 dark:text-gray-400 px-6 py-2 rounded-full text-sm font-medium hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2">
-                   Yearly <span className="text-brand-green text-xs font-bold">Save 20%</span>
+               <button onClick={() => setBillingCycle('monthly')} className={`${billingCycle === 'monthly' ? 'bg-brand-purple text-white shadow-md' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors'} px-6 py-2 rounded-full text-sm font-bold`}>Monthly</button>
+               <button onClick={() => setBillingCycle('yearly')} className={`${billingCycle === 'yearly' ? 'bg-brand-purple text-white shadow-md' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors'} px-6 py-2 rounded-full text-sm font-medium flex items-center gap-2`}>
+                   Yearly <span className={`${billingCycle === 'yearly' ? 'text-green-300' : 'text-brand-green'} text-xs font-bold`}>Save 20%</span>
                </button>
            </div>
        </div>
@@ -87,6 +88,7 @@ const PricingScreen: React.FC<PricingScreenProps> = ({ onBack, currentTier, onUp
                 tier="free"
                 name="Free"
                 price="$0"
+                isYearly={billingCycle === "yearly"}
                 features={[
                     "5 free tokens included",
                     "3 tokens per interview",
@@ -98,7 +100,8 @@ const PricingScreen: React.FC<PricingScreenProps> = ({ onBack, currentTier, onUp
             <PlanCard 
                 tier="pro"
                 name="Pro"
-                price="$29"
+                price={billingCycle === "monthly" ? "$29" : "$279"}
+                isYearly={billingCycle === "yearly"}
                 popular={true}
                 features={[
                     "Unlimited events",
@@ -113,7 +116,8 @@ const PricingScreen: React.FC<PricingScreenProps> = ({ onBack, currentTier, onUp
             <PlanCard 
                 tier="recruiter"
                 name="Enterprise"
-                price="$99"
+                price={billingCycle === "monthly" ? "$99" : "$949"}
+                isYearly={billingCycle === "yearly"}
                 features={[
                     "Everything in Pro",
                     "Team dashboards",

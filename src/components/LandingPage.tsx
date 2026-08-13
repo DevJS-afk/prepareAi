@@ -14,6 +14,7 @@ interface LandingPageProps {
 
 const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, onPrivacy, onTerms, theme, toggleTheme }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const { t } = useTranslation();
 
   const scrollToPricing = () => {
@@ -258,9 +259,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
 
               <div className="flex justify-center mb-16 animate-slide-up" style={{ animationDelay: '0.1s' }}>
                   <div className="bg-slate-200/50 dark:bg-white/5 p-1 rounded-full border border-slate-300/50 dark:border-white/10 flex items-center inline-flex">
-                      <button className="bg-brand-purple text-white px-6 py-2 rounded-full text-sm font-bold shadow-md">Monthly</button>
-                      <button className="text-slate-600 dark:text-gray-400 px-6 py-2 rounded-full text-sm font-medium hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2">
-                          Yearly <span className="text-brand-green text-xs font-bold">Save 20%</span>
+                      <button onClick={() => setBillingCycle('monthly')} className={`${billingCycle === 'monthly' ? 'bg-brand-purple text-white shadow-md' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors'} px-6 py-2 rounded-full text-sm font-bold`}>Monthly</button>
+                      <button onClick={() => setBillingCycle('yearly')} className={`${billingCycle === 'yearly' ? 'bg-brand-purple text-white shadow-md' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors'} px-6 py-2 rounded-full text-sm font-medium flex items-center gap-2`}>
+                          Yearly <span className={`${billingCycle === 'yearly' ? 'text-green-300' : 'text-brand-green'} text-xs font-bold`}>Save 20%</span>
                       </button>
                   </div>
               </div>
@@ -290,8 +291,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
                       <h3 className="text-2xl font-bold text-slate-950 dark:text-white mb-2 font-display">Pro</h3>
                       <p className="text-slate-500 dark:text-gray-400 text-sm mb-6">For serious preparation</p>
                       <div className="flex items-baseline gap-1 mb-8">
-                          <span className="text-5xl font-extrabold text-slate-950 dark:text-white tracking-tight">$29</span>
-                          <span className="text-slate-500 dark:text-gray-400 font-medium">/month</span>
+                          <span className="text-5xl font-extrabold text-slate-950 dark:text-white tracking-tight">{billingCycle === 'monthly' ? '$29' : '$279'}</span>
+                          <span className="text-slate-500 dark:text-gray-400 font-medium">{billingCycle === 'monthly' ? '/month' : '/year'}</span>
                       </div>
                       <button onClick={onSignup} className="w-full py-3 mb-8 rounded-xl font-bold bg-gradient-to-r from-brand-purple to-blue-500 hover:opacity-90 text-white transition-all shadow-md flex items-center justify-center gap-2">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" /></svg>
@@ -313,8 +314,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
                       <h3 className="text-2xl font-bold text-slate-950 dark:text-white mb-2 font-display">Enterprise</h3>
                       <p className="text-slate-500 dark:text-gray-400 text-sm mb-6">For teams & organizations</p>
                       <div className="flex items-baseline gap-1 mb-8">
-                          <span className="text-5xl font-extrabold text-slate-950 dark:text-white tracking-tight">$99</span>
-                          <span className="text-slate-500 dark:text-gray-400 font-medium">/month</span>
+                          <span className="text-5xl font-extrabold text-slate-950 dark:text-white tracking-tight">{billingCycle === 'monthly' ? '$99' : '$949'}</span>
+                          <span className="text-slate-500 dark:text-gray-400 font-medium">{billingCycle === 'monthly' ? '/month' : '/year'}</span>
                       </div>
                       <button onClick={onSignup} className="w-full py-3 mb-8 rounded-xl font-bold bg-slate-900/5 hover:bg-slate-900/10 text-slate-900 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white transition-all border border-slate-200 dark:border-white/10 shadow-sm">Contact Sales</button>
                       <ul className="space-y-4 flex-1 text-slate-700 dark:text-gray-300 text-sm">
