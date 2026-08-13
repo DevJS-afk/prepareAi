@@ -789,7 +789,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
                           <div 
                             key={interview.id} 
                             onClick={() => setSelectedInterview(interview)}
-                            className="glass-panel p-6 rounded-xl hover:bg-slate-100 dark:bg-white/5 transition-all cursor-pointer group border border-slate-200 dark:border-white/5 hover:border-brand-blue/30 relative overflow-hidden"
+                            className="bg-white/50 dark:bg-white/5 p-6 rounded-2xl hover:bg-white dark:hover:bg-white/10 transition-all cursor-pointer group border border-transparent shadow-sm hover:shadow-md hover:border-slate-200 dark:hover:border-white/10 relative overflow-hidden"
                           >
                               <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-brand-blue to-brand-purple opacity-0 group-hover:opacity-100 transition-opacity"></div>
                               <div className="flex justify-between items-center">

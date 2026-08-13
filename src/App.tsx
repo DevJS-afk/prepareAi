@@ -27,6 +27,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 import CookieBanner from './components/CookieBanner';
 import LanguageSwitcher from './components/LanguageSwitcher';
+import StarryBackground from './components/StarryBackground';
 
 const App: React.FC = () => {
   const { t } = useTranslation();
@@ -206,14 +207,16 @@ const App: React.FC = () => {
                         role: isAdminEmail ? 'admin' : 'user',
                         is_admin: isAdminEmail ? true : false,
                         full_name: metaName || '',
-                        avatar_url: metaAvatar || ''
+                        avatar_url: metaAvatar || '',
+                        tokens: 5
                     });
                 } catch (insertErr: any) {
                     if (insertErr.code === '42703') {
                          await supabase!.from('profiles').insert({ 
                              id: uid, 
                              role: isAdminEmail ? 'admin' : 'user', 
-                             email: email || '' 
+                             email: email || '',
+                             tokens: 5
                          });
                     }
                 }
@@ -234,7 +237,7 @@ const App: React.FC = () => {
             // Get Session Count (for normal users)
             const { count } = await supabase!.from('interviews').select('*', { count: 'exact', head: true }).eq('user_id', uid);
             setSessionCount(count || 0);
-            setTokens(profile?.tokens ?? 0);
+            setTokens(profile?.tokens ?? 5);
 
         } catch (e) {
             console.error("Error fetching user data", e);
@@ -287,8 +290,8 @@ const App: React.FC = () => {
 
   const handleStartInterview = useCallback((selectedConfig: InterviewConfig, practiceMode: boolean) => {
     if (userRole !== 'admin' && userRole !== 'candidate' && subscriptionTier === 'free' && !practiceMode) {
-        if (tokens <= 0) {
-            alert("Token Limit Reached: You have used all your tokens. Please upgrade to Pro for unlimited sessions or use 'Practice Mode'.");
+        if (tokens < 3) {
+            alert("Token Limit Reached: You need 3 tokens to start an interview. Please upgrade to Pro for unlimited sessions or use 'Practice Mode'.");
             navigate('/pricing');
             return;
         }
@@ -314,8 +317,8 @@ const App: React.FC = () => {
       setInterviewStatus(InterviewStatus.Finished);
       navigate('/results');
       setSessionCount(prev => prev + 1); 
-      if (subscriptionTier === 'free' && tokens > 0 && !isPracticeMode) {
-          const newTokens = tokens - 1;
+      if (subscriptionTier === 'free' && tokens >= 3 && !isPracticeMode) {
+          const newTokens = tokens - 3;
           setTokens(newTokens);
           supabase!.from('profiles').update({ tokens: newTokens }).eq('id', session?.user?.id).then();
       }
@@ -371,7 +374,8 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen relative flex flex-col items-center bg-slate-50 dark:bg-[#030712] text-slate-800 dark:text-white transition-colors duration-300">
        {/* Global Background Elements */}
-       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+       <div className="fixed inset-0 overflow-hidden pointer-events-none z-[0]">
+          <StarryBackground />
           <div className="absolute -top-40 -left-40 w-96 h-96 bg-brand-blue/30 rounded-full mix-blend-screen filter blur-[100px] opacity-15 dark:opacity-30 animate-blob"></div>
           <div className="absolute top-20 right-20 w-80 h-80 bg-brand-purple/30 rounded-full mix-blend-screen filter blur-[100px] opacity-15 dark:opacity-30 animate-blob animation-delay-2000"></div>
           <div className="absolute -bottom-40 left-1/2 w-96 h-96 bg-brand-green/20 rounded-full mix-blend-screen filter blur-[100px] opacity-10 dark:opacity-30 animate-blob animation-delay-4000"></div>
@@ -441,7 +445,7 @@ const App: React.FC = () => {
                         <div className="flex items-center gap-2 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full px-3 py-1.5 mr-2">
                             <span className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider">Credits</span>
                             <span className="text-sm font-bold text-slate-900 dark:text-white">{tokens}</span>
-                            {tokens <= 0 && <span className="text-[10px] font-bold bg-brand-red/10 text-brand-red px-1.5 rounded-sm">0</span>}
+                            {tokens < 3 && <span className="text-[10px] font-bold bg-brand-red/10 text-brand-red px-1.5 rounded-sm">Low</span>}
                         </div>
                         <button 
                           onClick={() => navigate('/profile')} 
@@ -511,7 +515,7 @@ const App: React.FC = () => {
                       <div className="flex items-center gap-2 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full px-3 py-1.5 w-max">
                           <span className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider">Credits</span>
                           <span className="text-sm font-bold text-slate-900 dark:text-white">{tokens}</span>
-                          {tokens <= 0 && <span className="text-[10px] font-bold bg-brand-red/10 text-brand-red px-1.5 rounded-sm">0</span>}
+                          {tokens < 3 && <span className="text-[10px] font-bold bg-brand-red/10 text-brand-red px-1.5 rounded-sm">Low</span>}
                       </div>
                       
                       <button 
@@ -552,7 +556,7 @@ const App: React.FC = () => {
          </header>
        )}
        
-       <main className="w-full mx-auto p-4 sm:p-6 flex-grow flex items-center justify-center animate-fade-in">
+       <main className="w-full mx-auto p-4 sm:p-6 flex-grow flex items-center justify-center animate-fade-in relative z-10">
          <Routes>
             {/* Public Routes */}
             <Route path="/" element={!session ? <LandingPage 
@@ -676,7 +680,7 @@ const App: React.FC = () => {
          </Routes>
        </main>
        
-       <footer className="w-full py-6 text-center text-gray-500 text-xs">
+       <footer className="w-full py-6 text-center text-gray-500 text-xs relative z-10">
           &copy; {new Date().getFullYear()} prepareAI. All rights reserved.
        </footer>
        <CookieBanner />

@@ -464,6 +464,37 @@ const EndScreen: React.FC<EndScreenProps> = ({
                         {activeReport.actionableAdvice.map((item, i) => <li key={i} className="flex gap-3 text-gray-300">→ {item}</li>)}
                      </ul>
                  </div>
+
+                 {transcription && transcription.length > 0 && (
+                     <div className="glass-panel p-8 rounded-2xl mt-6">
+                         <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                             <span className="w-1.5 h-6 bg-brand-purple rounded-full"></span>
+                             {t('EndScreen.transcriptionTitle', 'Interview Transcription & Feedback')}
+                         </h3>
+                         <div className="space-y-6">
+                             {transcription.map((entry, idx) => {
+                                 const isUser = entry.speaker === 'user';
+                                 const fb = isUser ? feedback.find(f => f.userText === entry.text) : null;
+                                 return (
+                                     <div key={idx} className={`p-4 rounded-xl ${isUser ? 'bg-black/20 border border-white/5' : 'bg-brand-blue/10 border border-brand-blue/20'}`}>
+                                         <div className="flex items-center gap-2 mb-2">
+                                             <span className={`text-xs font-bold uppercase tracking-wider ${isUser ? 'text-gray-400' : 'text-brand-blue'}`}>
+                                                 {isUser ? t('EndScreen.you', 'You') : t('EndScreen.aiInterviewer', 'AI Interviewer')}
+                                             </span>
+                                         </div>
+                                         <p className="text-gray-300 text-sm leading-relaxed">{entry.text}</p>
+                                         {fb && fb.feedbackText && (
+                                             <div className="mt-4 pt-4 border-t border-white/5">
+                                                 <div className="text-xs font-bold text-brand-purple uppercase tracking-wider mb-1">{t('EndScreen.aiFeedbackTitle', 'AI Feedback')}</div>
+                                                 <p className="text-brand-purple/90 text-sm italic">{fb.feedbackText}</p>
+                                             </div>
+                                         )}
+                                     </div>
+                                 );
+                             })}
+                         </div>
+                     </div>
+                 )}
             </div>
 
             <div className="lg:col-span-4 space-y-6">
@@ -491,7 +522,7 @@ const EndScreen: React.FC<EndScreenProps> = ({
                     )}
                     <div className="mt-10 pt-6 border-t border-white/10 space-y-4">
                         <button onClick={handleDownloadReport} disabled={isGeneratingPdf} className="w-full bg-brand-purple py-4 rounded-xl font-bold text-white">
-                            {isGeneratingPdf ? t('EndScreen.generatingPdf') : t('EndScreen.downloadPdf')}
+                            {isGeneratingPdf ? t('EndScreen.generatingPdf', 'Generating PDF...') : t('EndScreen.downloadPdf', 'Export to PDF')}
                         </button>
                         <button onClick={onRestart} className="w-full bg-white py-4 rounded-xl font-bold text-black">
                             {isHistoryView ? t('EndScreen.backToHistory') : t('EndScreen.tryAnotherInterview')}
