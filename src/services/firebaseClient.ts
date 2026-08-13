@@ -32,7 +32,8 @@ import firebaseConfig from '../../firebase-applet-config.json';
 export const firebaseApp = initializeApp(firebaseConfig);
 
 // Initialize Firestore with settings and custom databaseId as third parameter
-export const db = initializeFirestore(firebaseApp, {}, "ai-studio-prepareaivf-ea2a9091-0f39-482c-af85-0fc90e5161a2");
+import { getFirestore } from "firebase/firestore";
+export const db = getFirestore(firebaseApp);
 
 export const auth = getAuth(firebaseApp);
 
