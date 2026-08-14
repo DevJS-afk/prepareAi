@@ -377,7 +377,7 @@ export const supabase = {
           role: 'user',
           is_admin: false,
           subscription_tier: 'free',
-          tokens: 10,
+          tokens: 5,
           updated_at: new Date().toISOString()
         });
 
@@ -465,7 +465,7 @@ export const supabase = {
               role: 'user',
               is_admin: false,
               subscription_tier: 'free',
-          tokens: 10,
+          tokens: 5,
               updated_at: new Date().toISOString()
             });
           }

@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/firebaseClient';
@@ -232,7 +233,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
       const file = e.target.files?.[0];
       if (!file) return;
       if (!process.env.API_KEY) {
-          alert("API Key missing");
+          toast.error("API Key missing");
           return;
       }
       setIsImportingCV(true);
@@ -272,7 +273,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
               }));
           } catch (error) {
               console.error("Failed to parse CV", error);
-              alert("Failed to auto-fill from CV.");
+              toast.error("Failed to auto-fill from CV.");
           } finally {
               setIsImportingCV(false);
           }
@@ -326,11 +327,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
 
     } catch (error: any) {
         if (error.message && (error.message.includes("Bucket not found") || error.statusCode === '404')) {
-            alert("Configuration Error: The 'avatars' storage bucket does not exist. Please run the STORAGE SETUP SQL script found in README.md.");
+            toast.error("Configuration Error: The 'avatars' storage bucket does not exist. Please run the STORAGE SETUP SQL script found in README.md.");
         } else if (error.code === '42703' || (error.message && error.message.includes('avatar_url'))) {
-            alert("Database Error: The 'avatar_url' column is missing. Please run the 'Fix Database Schema' script in README.md.");
+            toast.error("Database Error: The 'avatar_url' column is missing. Please run the 'Fix Database Schema' script in README.md.");
         } else {
-            alert('Error uploading avatar: ' + error.message);
+            toast.error('Error uploading avatar: ' + error.message);
         }
     } finally {
         setUploadingAvatar(false);
@@ -423,7 +424,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
           
           handleCloseDoc();
       } catch (err: any) {
-          alert("Error deleting document: " + err.message);
+          toast.error("Error deleting document: " + err.message);
       }
   };
 
@@ -473,7 +474,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
           setIsEditingDoc(false);
 
       } catch (err: any) {
-          alert("Failed to update: " + err.message);
+          toast.error("Failed to update: " + err.message);
       } finally {
           setIsSavingDoc(false);
       }
@@ -626,7 +627,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
   return (
     <div className="w-full mx-auto space-y-8 animate-fade-in pb-12">
       <div className="flex items-center gap-3">
-          <button onClick={onBack} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
+          <button onClick={onBack} className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           </button>
           <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Your Profile</h2>

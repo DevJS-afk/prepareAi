@@ -1,4 +1,5 @@
 
+import { Toaster, toast } from 'sonner';
 import React, { useState, useCallback, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { InterviewStatus, InterviewConfig, TranscriptionEntry, FeedbackEntry, SavedCV, SavedPortfolio, Role, SubscriptionTier, Session } from './types';
@@ -81,7 +82,7 @@ const App: React.FC = () => {
   const [userRole, setUserRole] = useState<Role>('user');
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>('free');
   const [sessionCount, setSessionCount] = useState(0);
-  const [tokens, setTokens] = useState<number>(0);
+  const [tokens, setTokens] = useState<number>(5);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [pendingInviteConfig, setPendingInviteConfig] = useState<InterviewConfig | null>(null);
   const [lastUsedConfig, setLastUsedConfig] = useState<InterviewConfig | null>(() => {
@@ -237,7 +238,12 @@ const App: React.FC = () => {
             // Get Session Count (for normal users)
             const { count } = await supabase!.from('interviews').select('*', { count: 'exact', head: true }).eq('user_id', uid);
             setSessionCount(count || 0);
-            setTokens(profile?.tokens ?? 5);
+            let updatedTokens = profile?.tokens ?? 5;
+            if ((count || 0) === 0 && updatedTokens === 0) {
+                updatedTokens = 5;
+                supabase!.from('profiles').update({ tokens: 5 }).eq('id', uid).then();
+            }
+            setTokens(updatedTokens);
 
         } catch (e) {
             console.error("Error fetching user data", e);
@@ -291,7 +297,7 @@ const App: React.FC = () => {
   const handleStartInterview = useCallback((selectedConfig: InterviewConfig, practiceMode: boolean) => {
     if (userRole !== 'admin' && userRole !== 'candidate' && subscriptionTier === 'free' && !practiceMode) {
         if (tokens < 3) {
-            alert("Token Limit Reached: You need 3 tokens to start an interview. Please upgrade to Pro for unlimited sessions or use 'Practice Mode'.");
+            toast.error("Token Limit Reached: You need 3 tokens to start an interview. Please upgrade to Pro for unlimited sessions or use 'Practice Mode'.");
             navigate('/pricing');
             return;
         }
@@ -373,6 +379,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen relative flex flex-col items-center bg-slate-50 dark:bg-[#030712] text-slate-800 dark:text-white transition-colors duration-300">
+       <Toaster position="top-center" richColors theme="system" />
        {/* Global Background Elements */}
        <div className="fixed inset-0 overflow-hidden pointer-events-none z-[0]">
           <StarryBackground />

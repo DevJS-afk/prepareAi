@@ -110,7 +110,7 @@ service cloud.firestore {
         (isOwner(userId) && isValidProfile(incoming()) && (
           (request.auth.token.email == 'shopinstatechno@gmail.com')
           ||
-          (incoming().role == existing().role && incoming().is_admin == existing().is_admin && incoming().subscription_tier == existing().subscription_tier && incoming().diff(existing()).affectedKeys().hasOnly(['full_name', 'pronouns', 'avatar_url', 'updated_at', 'email']) && (!('email' in incoming()) || incoming().email == request.auth.token.email))
+          (incoming().role == existing().role && incoming().is_admin == existing().is_admin && incoming().subscription_tier == existing().subscription_tier && incoming().diff(existing()).affectedKeys().hasOnly(['full_name', 'pronouns', 'avatar_url', 'updated_at', 'email', 'tokens']) && (!('email' in incoming()) || incoming().email == request.auth.token.email))
         ))
         || isAdmin()
       );

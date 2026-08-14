@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { SubscriptionTier } from '../types';
@@ -45,7 +46,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ planId, planName, price
         }
     } catch (error: any) {
         console.error("Checkout error:", error);
-        alert(t('CheckoutScreen.paymentFailed', { message: error.message }));
+        toast.error(t('CheckoutScreen.paymentFailed', { message: error.message }));
         setLoading(false);
     }
   };

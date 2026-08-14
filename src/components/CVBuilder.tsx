@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { marked } from 'marked';
@@ -149,7 +150,7 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
   const handleAnalyzeResume = async () => {
       if (!importText.trim() && !importFileBase64) return;
       if (!process.env.API_KEY) {
-          alert("API Key missing");
+          toast.error("API Key missing");
           return;
       }
       setIsAnalyzing(true);
@@ -223,9 +224,9 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
           }
           const errStr = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
           if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
-              alert("We have temporarily exceeded our AI service quota. Please try again later.");
+              toast.error("We have temporarily exceeded our AI service quota. Please try again later.");
           } else {
-              alert("Failed to analyze resume. Please ensure the file is readable.");
+              toast.error("Failed to analyze resume. Please ensure the file is readable.");
           }
       } finally {
           setIsAnalyzing(false);
@@ -396,9 +397,9 @@ const formatContent = (text: any) => {
         }
         const errStr = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
         if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
-            alert("We have temporarily exceeded our AI service quota. Please try again later.");
+            toast.error("We have temporarily exceeded our AI service quota. Please try again later.");
         } else {
-            alert("Failed to generate CV. Please try again.");
+            toast.error("Failed to generate CV. Please try again.");
         }
     } finally {
         setIsGenerating(false);
@@ -456,9 +457,9 @@ const formatContent = (text: any) => {
           }
           const errStr = String(e) + " " + JSON.stringify(e, Object.getOwnPropertyNames(e || {}));
           if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
-              alert("We have temporarily exceeded our AI service quota. Please try again later.");
+              toast.error("We have temporarily exceeded our AI service quota. Please try again later.");
           } else {
-              alert("Scan failed: " + e.message);
+              toast.error("Scan failed: " + e.message);
           }
       } finally {
           setIsScanningAts(false);
@@ -468,7 +469,7 @@ const formatContent = (text: any) => {
   const handleSave = async () => {
       if (!generatedCV) return;
       if (!supabase) {
-          alert("Database connection not available.");
+          toast.error("Database connection not available.");
           return;
       }
       
@@ -476,14 +477,14 @@ const formatContent = (text: any) => {
       try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) {
-              alert("You must be logged in to save.");
+              toast.error("You must be logged in to save.");
               return;
           }
 
           if (!currentCvId && subscriptionTier === 'free' && !isAdmin) {
               const { count } = await supabase.from('cvs').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
               if (count && count >= 1) {
-                  alert("Free Plan Limit: You can only save 1 Resume. Please upgrade to Pro for unlimited saves.");
+                  toast.error("Free Plan Limit: You can only save 1 Resume. Please upgrade to Pro for unlimited saves.");
                   setIsSaving(false);
                   return;
               }
@@ -498,22 +499,22 @@ const formatContent = (text: any) => {
           if (currentCvId) {
               const { error } = await supabase.from('cvs').update(payload).eq('id', currentCvId);
               if (error) throw error;
-              alert("Resume updated successfully!");
+              toast.success("Resume updated successfully!");
           } else {
               const { data, error } = await supabase.from('cvs').insert({ ...payload, user_id: user.id }).select();
               if (error) throw error;
               if (data && data[0]) {
                   setCurrentCvId(data[0].id);
               }
-              alert("Resume saved successfully to your profile!");
+              toast.success("Resume saved successfully to your profile!");
           }
 
       } catch (err: any) {
           console.error("Error saving CV:", err);
           if (err.code === 'PGRST205' || err.message?.includes('does not exist') || err.code === '42P01') {
-              alert("Configuration Error: The 'cvs' table does not exist in your database.\n\nPlease go to the README.md file, copy the SQL script under 'Database Setup', and run it in your Supabase SQL Editor.");
+              toast.error("Configuration Error: The 'cvs' table does not exist in your database.\n\nPlease go to the README.md file, copy the SQL script under 'Database Setup', and run it in your Supabase SQL Editor.");
           } else {
-              alert("Failed to save resume: " + err.message);
+              toast.error("Failed to save resume: " + err.message);
           }
       } finally {
           setIsSaving(false);

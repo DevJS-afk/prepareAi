@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 
 import React, { useState } from 'react';
 import { GoogleGenAI } from '@google/genai';
@@ -19,7 +20,7 @@ const MotivationLetter: React.FC<MotivationLetterProps> = ({ onBack }) => {
 
   const handleGenerate = async () => {
     if (!process.env.API_KEY) {
-        alert("API Key missing");
+        toast.error("API Key missing");
         return;
     }
     setIsGenerating(true);
@@ -57,9 +58,9 @@ const MotivationLetter: React.FC<MotivationLetterProps> = ({ onBack }) => {
         }
         const errStr = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
         if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
-            alert("We have temporarily exceeded our AI service quota. Please try again later.");
+            toast.error("We have temporarily exceeded our AI service quota. Please try again later.");
         } else {
-            alert("Failed to generate letter. Please try again.");
+            toast.error("Failed to generate letter. Please try again.");
         }
     } finally {
         setIsGenerating(false);
@@ -69,7 +70,7 @@ const MotivationLetter: React.FC<MotivationLetterProps> = ({ onBack }) => {
   const handleSave = async () => {
       if (!generatedLetter) return;
       if (!supabase) {
-          alert("Database connection not available.");
+          toast.error("Database connection not available.");
           return;
       }
       
@@ -77,7 +78,7 @@ const MotivationLetter: React.FC<MotivationLetterProps> = ({ onBack }) => {
       try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) {
-              alert("You must be logged in to save.");
+              toast.error("You must be logged in to save.");
               return;
           }
 
@@ -90,10 +91,10 @@ const MotivationLetter: React.FC<MotivationLetterProps> = ({ onBack }) => {
           });
 
           if (error) throw error;
-          alert("Letter saved successfully to your profile!");
+          toast.success("Letter saved successfully to your profile!");
       } catch (err: any) {
           console.error("Error saving letter:", err);
-          alert("Failed to save letter: " + err.message);
+          toast.error("Failed to save letter: " + err.message);
       } finally {
           setIsSaving(false);
       }

@@ -709,11 +709,11 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ onEnd, config, isPrac
         <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-brand-red" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
         </div>
-        <h2 className="text-2xl font-bold mb-2 text-white">{t('InterviewScreen.connection_interrupted')}</h2>
-        <p className="text-gray-400 mb-8">{error}</p>
+        <h2 className="text-2xl font-bold mb-2 text-slate-900 dark:text-white">{t('InterviewScreen.connection_interrupted')}</h2>
+        <p className="text-slate-600 dark:text-gray-400 mb-8">{error}</p>
         <div className="flex justify-center gap-4">
-            <button onClick={retry} className="bg-white text-black hover:bg-gray-200 font-bold py-3 px-8 rounded-xl transition-colors">{t('InterviewScreen.retry')}</button>
-            <button onClick={() => onEnd(transcription, feedback, confidenceTrendRef.current)} className="bg-transparent border border-gray-600 hover:bg-gray-800 text-white font-bold py-3 px-8 rounded-xl transition-colors">{t('InterviewScreen.abort')}</button>
+            <button onClick={retry} className="bg-slate-200 dark:bg-white text-slate-900 dark:text-black hover:bg-slate-300 dark:hover:bg-gray-200 font-bold py-3 px-8 rounded-xl transition-colors">{t('InterviewScreen.retry')}</button>
+            <button onClick={() => onEnd(transcription, feedback, confidenceTrendRef.current)} className="bg-transparent border border-slate-300 dark:border-gray-600 hover:bg-slate-100 dark:hover:bg-gray-800 text-slate-700 dark:text-white font-bold py-3 px-8 rounded-xl transition-colors">{t('InterviewScreen.abort')}</button>
         </div>
       </div>
     );
@@ -748,7 +748,7 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ onEnd, config, isPrac
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                </div>
                <h2 className="text-3xl font-bold text-white mb-3">{t('InterviewScreen.paused_session')}</h2>
-               <p className="text-gray-400 mb-8 max-w-md">
+               <p className="text-slate-600 dark:text-gray-400 mb-8 max-w-md">
                  {!isFullscreen ? t('InterviewScreen.paused_instruction') : t('InterviewScreen.paused_instruction')}
                  <br/><span className="text-sm mt-2 block">{t('InterviewScreen.paused_keyboard_hint')}</span>
                </p>
@@ -757,7 +757,7 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ onEnd, config, isPrac
                         if (!isFullscreen) handleStartSession();
                         else setIsManuallyPaused(false);
                     }}
-                    className="px-8 py-3 bg-white text-black hover:bg-gray-200 font-bold rounded-xl transition-colors"
+                    className="px-8 py-3 bg-slate-200 dark:bg-white text-slate-900 dark:text-black hover:bg-slate-300 dark:hover:bg-gray-200 font-bold rounded-xl transition-colors"
                 >
                     {t('InterviewScreen.resume_session')}
                </button>

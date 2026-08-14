@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useEffect, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { supabase } from '../services/firebaseClient';
@@ -129,7 +130,7 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
       e.preventDefault();
       if (!newEmail || !supabase) return;
       if (invites.length >= 25) {
-          alert(t('InterviewerDashboard.inviteLimitAlert'));
+          toast.error(t('InterviewerDashboard.inviteLimitAlert'));
           return;
       }
       setCreating(true);
@@ -150,7 +151,7 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
       const inviteToken = crypto.randomUUID();
       const { data, error } = await supabase.from('invites').insert({ interviewer_id: userId, email: newEmail, token: inviteToken, config: finalConfig, }).select();
       if (error) {
-          alert(t('InterviewerDashboard.inviteError', { message: error.message }));
+          toast.error(t('InterviewerDashboard.inviteError', { message: error.message }));
       } else if (data && data[0]) {
           setNewEmail('');
           setCustomRole('');
@@ -169,7 +170,7 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
       const { error } = await supabase.from('invites').delete().eq('id', inviteId);
       if (error) {
           console.error("Error deleting invite:", error);
-          alert(t('InterviewerDashboard.deleteInviteError', { message: error.message }));
+          toast.error(t('InterviewerDashboard.deleteInviteError', { message: error.message }));
       } else {
           setInvites(prev => prev.filter(i => i.id !== inviteId));
       }
@@ -184,12 +185,12 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
 
   const copyToClipboard = (text: string) => {
       navigator.clipboard.writeText(text);
-      alert(t('InterviewerDashboard.inviteCopied'));
+      toast.success(t('InterviewerDashboard.inviteCopied'));
   };
 
   const handleGenerateDescription = async () => {
     if (!jobTitle || !jobCompany) {
-      alert(t('InterviewerDashboard.jobDescRequired'));
+      toast.error(t('InterviewerDashboard.jobDescRequired'));
       return;
     }
     setGeneratingDescription(true);
@@ -204,7 +205,7 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
       if (data.description) setJobDescription(data.description);
     } catch (err: any) {
       console.error(err);
-      alert(t('InterviewerDashboard.genJobDescError', { message: err.message }));
+      toast.error(t('InterviewerDashboard.genJobDescError', { message: err.message }));
     } finally {
       setGeneratingDescription(false);
     }
@@ -213,7 +214,7 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
   const handleSaveJobOffer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!jobTitle || !jobCompany || !jobLocation || !jobDescription) {
-      alert(t('InterviewerDashboard.saveJobRequired'));
+      toast.error(t('InterviewerDashboard.saveJobRequired'));
       return;
     }
     setSavingJob(true);
@@ -222,17 +223,17 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
       if (editingJobId) {
         const { error } = await supabase.from('job_offers').update(jobData).eq('id', editingJobId);
         if (error) throw error;
-        alert(t('InterviewerDashboard.jobUpdateSuccess'));
+        toast.success(t('InterviewerDashboard.jobUpdateSuccess'));
       } else {
         const { error } = await supabase.from('job_offers').insert(jobData);
         if (error) throw error;
-        alert(t('InterviewerDashboard.jobPostSuccess'));
+        toast.success(t('InterviewerDashboard.jobPostSuccess'));
       }
       resetJobForm();
       fetchJobOffers();
     } catch (err: any) {
       console.error(err);
-      alert(t('InterviewerDashboard.saveJobError', { message: err.message }));
+      toast.error(t('InterviewerDashboard.saveJobError', { message: err.message }));
     } finally {
       setSavingJob(false);
     }
@@ -278,7 +279,7 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
       fetchJobOffers();
     } catch (err: any) {
       console.error(err);
-      alert(t('InterviewerDashboard.deleteJobError', { message: err.message }));
+      toast.error(t('InterviewerDashboard.deleteJobError', { message: err.message }));
     }
   };
 

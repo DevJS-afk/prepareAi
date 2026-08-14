@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 
 import React, { useState, useMemo } from 'react';
 import { GoogleGenAI } from '@google/genai';
@@ -116,7 +117,7 @@ const InterviewSetup: React.FC<InterviewSetupProps> = ({ onStart, onBack }) => {
       const file = e.target.files?.[0];
       if (!file) return;
       if (!process.env.API_KEY) {
-          alert("API Key missing");
+          toast.error("API Key missing");
           return;
       }
 
@@ -180,9 +181,9 @@ const InterviewSetup: React.FC<InterviewSetupProps> = ({ onStart, onBack }) => {
           }
           const errStr = String(err) + " " + JSON.stringify(err, Object.getOwnPropertyNames(err || {}));
           if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
-              alert("We have temporarily exceeded our AI service quota. Please try again later.");
+              toast.error("We have temporarily exceeded our AI service quota. Please try again later.");
           } else {
-              alert("Failed to analyze resume.");
+              toast.error("Failed to analyze resume.");
           }
           setIsAnalyzingResume(false);
           setResumeFileName(null);
@@ -373,7 +374,7 @@ const InterviewSetup: React.FC<InterviewSetupProps> = ({ onStart, onBack }) => {
                                 </h4>
                                 <p className="text-xs text-slate-600 dark:text-gray-400 mt-1">Upload your CV (PDF) and we'll automatically extract your target Role, Industry, and Skills.</p>
                             </div>
-                            <label className={`cursor-pointer bg-white/10 hover:bg-white/20 text-slate-900 dark:text-white px-4 py-2 rounded-lg text-xs font-bold transition-colors flex items-center gap-2 border border-slate-200 dark:border-white/10 ${isAnalyzingResume ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                            <label className={`cursor-pointer bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-slate-900 dark:text-white px-4 py-2 rounded-lg text-xs font-bold transition-colors flex items-center gap-2 border border-slate-200 dark:border-white/10 ${isAnalyzingResume ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                 {isAnalyzingResume ? (
                                     <>
                                         <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -463,7 +464,7 @@ const InterviewSetup: React.FC<InterviewSetupProps> = ({ onStart, onBack }) => {
                                     }`}
                                 >
                                     <div className="flex items-center justify-between mb-3">
-                                         <span className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded ${selectedLevel === key ? 'bg-brand-green text-white' : 'bg-gray-700 text-slate-600 dark:text-gray-400'}`}>
+                                         <span className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded ${selectedLevel === key ? 'bg-brand-green text-white' : 'bg-slate-200 dark:bg-gray-700 text-slate-600 dark:text-gray-300'}`}>
                                             {key}
                                          </span>
                                     </div>
@@ -497,7 +498,7 @@ const InterviewSetup: React.FC<InterviewSetupProps> = ({ onStart, onBack }) => {
                             : 'bg-white/50 dark:bg-white/5 border-transparent hover:bg-white dark:hover:bg-white/10 hover:shadow-sm hover:border-slate-200 dark:hover:border-white/10 shadow-sm'
                         }`}
                         >
-                            <h4 className={`text-lg font-bold mb-2 ${selectedPersona === key ? 'text-brand-yellow' : 'text-gray-200'}`}>{persona.name}</h4>
+                            <h4 className={`text-lg font-bold mb-2 ${selectedPersona === key ? 'text-brand-yellow' : 'text-slate-900 dark:text-gray-200'}`}>{persona.name}</h4>
                             <p className="text-sm text-slate-600 dark:text-gray-400 leading-relaxed">{persona.description}</p>
                         </button>
                     );
@@ -570,7 +571,7 @@ const InterviewSetup: React.FC<InterviewSetupProps> = ({ onStart, onBack }) => {
         <label className="flex items-center cursor-pointer group">
             <div className="relative">
                 <input type="checkbox" className="sr-only" checked={isPracticeMode} onChange={() => setIsPracticeMode(!isPracticeMode)} />
-                <div className={`w-12 h-7 rounded-full transition-colors duration-300 ${isPracticeMode ? 'bg-brand-green' : 'bg-gray-700'}`}></div>
+                <div className={`w-12 h-7 rounded-full transition-colors duration-300 ${isPracticeMode ? 'bg-brand-green' : 'bg-slate-300 dark:bg-gray-700'}`}></div>
                 <div className={`absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform duration-300 ${isPracticeMode ? 'translate-x-5' : ''}`}></div>
             </div>
             <div className="ml-3">

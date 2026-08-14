@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 
 import React, { useState, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
@@ -209,9 +210,9 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
           return publicUrl;
       } catch (error: any) {
           if (error.message && (error.message.includes("Bucket not found") || error.statusCode === '404')) {
-              alert("Configuration Error: The 'portfolio-images' storage bucket does not exist. Please run the Storage Setup SQL script in README.md.");
+              toast.error("Configuration Error: The 'portfolio-images' storage bucket does not exist. Please run the Storage Setup SQL script in README.md.");
           } else {
-              alert('Error uploading image: ' + error.message);
+              toast.error('Error uploading image: ' + error.message);
           }
           return null;
       }
@@ -269,12 +270,12 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
       }
 
       if (!textToAnalyze.trim() && !fileData) {
-          alert("Please select a CV, paste text, or upload a PDF to import.");
+          toast.error("Please select a CV, paste text, or upload a PDF to import.");
           return;
       }
       
       if (!process.env.API_KEY) {
-          alert("API Key missing");
+          toast.error("API Key missing");
           return;
       }
 
@@ -359,9 +360,9 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
           }
           const errStr = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
           if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
-              alert("We have temporarily exceeded our AI service quota. Please try again later.");
+              toast.error("We have temporarily exceeded our AI service quota. Please try again later.");
           } else {
-              alert("Failed to analyze resume data.");
+              toast.error("Failed to analyze resume data.");
           }
       } finally {
           setIsAnalyzing(false);
@@ -370,7 +371,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
 
   const handleGenerate = async () => {
     if (!process.env.API_KEY) {
-        alert("API Key missing");
+        toast.error("API Key missing");
         return;
     }
     setIsGenerating(true);
@@ -441,9 +442,9 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
         }
         const errStr = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
         if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
-            alert("We have temporarily exceeded our AI service quota. Please try again later.");
+            toast.error("We have temporarily exceeded our AI service quota. Please try again later.");
         } else {
-            alert("Failed to generate portfolio. Please try again.");
+            toast.error("Failed to generate portfolio. Please try again.");
         }
     } finally {
         setIsGenerating(false);
@@ -453,7 +454,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
   const handleSave = async () => {
       if (!generatedCode) return;
       if (!supabase) {
-          alert("Database connection not available.");
+          toast.error("Database connection not available.");
           return;
       }
       
@@ -461,7 +462,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
       try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) {
-              alert("You must be logged in to save.");
+              toast.error("You must be logged in to save.");
               return;
           }
 
@@ -469,7 +470,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
           if (!currentPortfolioId && subscriptionTier === 'free' && !isAdmin) {
               const { count } = await supabase.from('portfolios').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
               if (count && count >= 1) {
-                  alert("Free Plan Limit: You can only save 1 Portfolio. Please upgrade to Pro for unlimited saves.");
+                  toast.error("Free Plan Limit: You can only save 1 Portfolio. Please upgrade to Pro for unlimited saves.");
                   setIsSaving(false);
                   return;
               }
@@ -484,22 +485,22 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
           if (currentPortfolioId) {
               const { error } = await supabase.from('portfolios').update(payload).eq('id', currentPortfolioId);
               if (error) throw error;
-              alert("Portfolio updated successfully!");
+              toast.success("Portfolio updated successfully!");
           } else {
               const { data, error } = await supabase.from('portfolios').insert({ ...payload, user_id: user.id }).select();
               if (error) throw error;
               if (data && data[0]) {
                   setCurrentPortfolioId(data[0].id);
               }
-              alert("Portfolio saved successfully to your profile!");
+              toast.success("Portfolio saved successfully to your profile!");
           }
 
       } catch (err: any) {
           console.error("Error saving Portfolio:", err);
           if (err.code === 'PGRST205' || err.message?.includes('does not exist') || err.code === '42P01') {
-              alert("Configuration Error: The 'portfolios' table does not exist in your database.\n\nPlease go to the README.md file, copy the SQL script under 'Database Setup', and run it in your Supabase SQL Editor.");
+              toast.error("Configuration Error: The 'portfolios' table does not exist in your database.\n\nPlease go to the README.md file, copy the SQL script under 'Database Setup', and run it in your Supabase SQL Editor.");
           } else {
-              alert("Failed to save portfolio: " + err.message);
+              toast.error("Failed to save portfolio: " + err.message);
           }
       } finally {
           setIsSaving(false);
