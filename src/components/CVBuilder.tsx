@@ -573,7 +573,7 @@ const formatContent = (text: any) => {
   };
 
   return (
-    <div className="w-[90vw] h-[90vh] flex flex-col glass-panel rounded-2xl overflow-hidden animate-fade-in shadow-2xl relative">
+    <div className="w-full h-[100dvh] sm:w-[95vw] sm:h-[95vh] md:w-[90vw] md:h-[90vh] flex flex-col glass-panel sm:rounded-2xl overflow-hidden animate-fade-in shadow-2xl relative">
         
         {showAtsModal && (
             <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
@@ -722,8 +722,8 @@ const formatContent = (text: any) => {
             </div>
         )}
 
-        <div className="h-16 border-b border-slate-200 dark:border-white/10 bg-slate-200/30 dark:bg-black/20 flex items-center justify-between px-6 shrink-0 backdrop-blur-md">
-            <div className="flex items-center gap-4">
+        <div className="min-h-[4rem] border-b border-slate-200 dark:border-white/10 bg-slate-200/30 dark:bg-black/20 flex flex-col md:flex-row items-center justify-between p-4 md:px-6 shrink-0 backdrop-blur-md gap-4">
+            <div className="flex items-center gap-4 w-full md:w-auto">
                 <button onClick={onBack} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                 </button>
@@ -733,7 +733,7 @@ const formatContent = (text: any) => {
                 </div>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 justify-start md:justify-end custom-scrollbar shrink-0">
                  <div className="relative group">
                      <select 
                         value={selectedTemplate}
@@ -804,9 +804,9 @@ const formatContent = (text: any) => {
             </div>
         </div>
 
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-slate-200/70 dark:bg-black/40">
+        <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden bg-slate-200/70 dark:bg-black/40 relative">
             
-            <div className="lg:w-[400px] xl:w-[450px] flex flex-col border-r border-slate-200 dark:border-white/5 bg-slate-200/30 dark:bg-black/20 overflow-y-auto custom-scrollbar p-6 space-y-8">
+            <div className="w-full lg:w-[400px] xl:w-[450px] flex flex-col border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-white/5 bg-slate-200/30 dark:bg-black/20 lg:overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-6 sm:space-y-8 lg:h-full shrink-0">
                 
                 <div className="space-y-4">
                     <h3 className="text-sm font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
@@ -965,7 +965,7 @@ const formatContent = (text: any) => {
                 </div>
             </div>
 
-            <div className="flex-1 bg-white dark:bg-[#1a1a1a] p-8 overflow-y-auto flex justify-center items-start custom-scrollbar relative">
+            <div className="flex-1 min-h-[500px] lg:min-h-0 bg-white dark:bg-[#1a1a1a] p-4 sm:p-8 lg:overflow-y-auto flex justify-center items-start custom-scrollbar relative">
                 
                 {generatedCV && (
                     <div className="absolute top-6 right-6 z-10 flex items-center gap-2 bg-black/60 backdrop-blur-md p-1.5 rounded-lg border border-slate-200 dark:border-white/10 shadow-lg">
