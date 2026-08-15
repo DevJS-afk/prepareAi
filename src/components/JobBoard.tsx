@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { JobOffer } from '../types';
-import { supabase } from '../services/firebaseClient';
+import { supabase } from '../services/supabaseClient';
 import ReactMarkdown from 'react-markdown';
 
 interface JobBoardProps {

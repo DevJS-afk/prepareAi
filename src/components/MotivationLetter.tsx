@@ -2,7 +2,7 @@ import { toast } from 'sonner';
 
 import React, { useState } from 'react';
 import { GoogleGenAI } from '@google/genai';
-import { supabase } from '../services/firebaseClient';
+import { supabase } from '../services/supabaseClient';
 
 interface MotivationLetterProps {
   onBack: () => void;

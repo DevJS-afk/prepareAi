@@ -2,7 +2,7 @@ import { toast } from 'sonner';
 
 import React, { useState, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
-import { supabase } from '../services/firebaseClient';
+import { supabase } from '../services/supabaseClient';
 import type { SavedCV, SubscriptionTier } from '../types';
 
 interface PortfolioBuilderProps {

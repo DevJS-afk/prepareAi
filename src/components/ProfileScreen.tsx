@@ -1,7 +1,7 @@
 import { toast } from 'sonner';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../services/firebaseClient';
+import { supabase } from '../services/supabaseClient';
 import { GoogleGenAI } from '@google/genai';
 import type { InterviewConfig, TranscriptionEntry, FeedbackEntry, InterviewReport, SuggestedResource, SavedCV, SavedLetter, SavedPortfolio, SubscriptionTier, Session } from '../types';
 import EndScreen from './EndScreen';

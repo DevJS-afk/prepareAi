@@ -1,7 +1,7 @@
 import { toast } from 'sonner';
 import React, { useEffect, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
-import { supabase } from '../services/firebaseClient';
+import { supabase } from '../services/supabaseClient';
 import type { Invite, LevelKey, PersonaKey, InterviewReport, SuggestedResource, TranscriptionEntry, FeedbackEntry, InterviewConfig } from '../types';
 import { personas } from '../types';
 import EndScreen from './EndScreen';

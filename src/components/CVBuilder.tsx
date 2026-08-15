@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { marked } from 'marked';
 import { GoogleGenAI } from '@google/genai';
-import { supabase } from '../services/firebaseClient';
+import { supabase } from '../services/supabaseClient';
 import type { SubscriptionTier } from '../types';
 
 interface CVBuilderProps {

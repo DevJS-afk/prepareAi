@@ -3,7 +3,7 @@ import { Toaster, toast } from 'sonner';
 import React, { useState, useCallback, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { InterviewStatus, InterviewConfig, TranscriptionEntry, FeedbackEntry, SavedCV, SavedPortfolio, Role, SubscriptionTier, Session } from './types';
-import { supabase } from './services/firebaseClient';
+import { supabase } from './services/supabaseClient';
 import { useTranslation } from 'react-i18next';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import Dashboard from './components/WelcomeScreen'; 
