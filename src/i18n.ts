@@ -16,9 +16,9 @@ const resources = {
       landing: {
         login: 'Log In',
         getStarted: 'Get Started',
-        heroTitle1: 'Interview practice',
-        heroTitle2: 'reimagined.',
-        heroSubtitle: 'Master your next technical or behavioral interview with an AI that listens, reacts, and coaches you in real-time. No scripts, just conversation.',
+        heroTitle1: 'prepareAI | Your AI Interview Coach',
+        heroTitle2: 'Land your dream job.',
+        heroSubtitle: 'prepareAI is an advanced interview practice platform. We help job seekers master technical and behavioral interviews using real-time AI simulations that listen, react, and coach you. Generate tailored resumes and portfolios to stand out.',
         startFree: 'Start Practicing Free',
         howItWorks: 'How it Works'
       },

@@ -332,6 +332,30 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
          </div>
       </section>
 
+
+      {/* Data Privacy & Transparency Section */}
+      <section className="w-full mx-auto px-6 py-20 relative z-10 text-center border-t border-slate-200/80 dark:border-white/5 bg-slate-50 dark:bg-transparent">
+         <div className="max-w-4xl mx-auto glass-panel p-10 rounded-3xl border border-slate-200/80 dark:border-white/5">
+              <div className="w-16 h-16 bg-brand-blue/10 dark:bg-brand-blue/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-brand-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-extrabold mb-6 text-slate-950 dark:text-white font-display">Data Privacy & Transparency</h2>
+              <p className="text-base text-slate-600 dark:text-gray-300 mb-8 leading-relaxed">
+                  <strong>prepareAI</strong> is fully committed to protecting your privacy. We only request the data necessary to provide you with a personalized coaching experience.
+                  <br/><br/>
+                  When you sign in or use our platform, we access your basic profile (like email and name) solely to authenticate you and sync your session history. Any files you provide (such as your resume or cover letter) are used strictly to generate realistic, tailored interview questions and feedback using Google Gemini models. Your data is securely hosted on our verified servers and is never sold to third parties.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <button onClick={onPrivacy} className="px-8 py-3 rounded-xl font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-gray-100 transition-all shadow-md">
+                      Read Privacy Policy
+                  </button>
+                  <button onClick={onTerms} className="px-8 py-3 rounded-xl font-bold bg-white dark:bg-black/40 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all">
+                      Terms of Service
+                  </button>
+              </div>
+         </div>
+      </section>
+
       <footer className="w-full border-t border-slate-200/80 dark:border-white/5 py-10 text-center text-slate-500 dark:text-gray-400 text-sm relative z-10 bg-slate-100 dark:bg-black/40 backdrop-blur-md">
           <div className="mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
               <p>&copy; {new Date().getFullYear()} prepareAI. Built by DevJs.</p>
