@@ -111,8 +111,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
                 }
             } else if (error.code === '42P17') {
                 // Infinite recursion detected in DB policy
-                console.error("Critical DB Error: Infinite recursion in 'profiles' policy. Run the fix SQL script.");
-                setError("Database Config Error: Infinite recursion detected. Please run the FIX SQL script located in README.md");
+                console.error("Critical DB Error: Infinite recursion or permission denied in profiles.");
+                setError("Database Error: Could not fetch profile due to permissions.");
                 setLoading(false);
                 return;
             } else {
@@ -327,7 +327,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
 
     } catch (error: any) {
         if (error.message && (error.message.includes("Bucket not found") || error.statusCode === '404')) {
-            toast.error("Configuration Error: The 'avatars' storage bucket does not exist. Please run the STORAGE SETUP SQL script found in README.md.");
+            toast.error("Error: Could not upload avatar to Firebase Storage.");
         } else if (error.code === '42703' || (error.message && error.message.includes('avatar_url'))) {
             toast.error("Database Error: The 'avatar_url' column is missing. Please run the 'Fix Database Schema' script in README.md.");
         } else {

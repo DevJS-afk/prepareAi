@@ -33,7 +33,7 @@ export const firebaseApp = initializeApp(firebaseConfig);
 
 // Initialize Firestore with settings and custom databaseId as third parameter
 import { getFirestore } from "firebase/firestore";
-export const db = getFirestore(firebaseApp);
+export const db = firebaseConfig.firestoreDatabaseId ? getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId) : getFirestore(firebaseApp);
 
 export const auth = getAuth(firebaseApp);
 

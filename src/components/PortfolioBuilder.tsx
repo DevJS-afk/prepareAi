@@ -210,7 +210,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
           return publicUrl;
       } catch (error: any) {
           if (error.message && (error.message.includes("Bucket not found") || error.statusCode === '404')) {
-              toast.error("Configuration Error: The 'portfolio-images' storage bucket does not exist. Please run the Storage Setup SQL script in README.md.");
+              toast.error("Error: Could not upload image to Firebase Storage.");
           } else {
               toast.error('Error uploading image: ' + error.message);
           }
@@ -497,11 +497,9 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
 
       } catch (err: any) {
           console.error("Error saving Portfolio:", err);
-          if (err.code === 'PGRST205' || err.message?.includes('does not exist') || err.code === '42P01') {
-              toast.error("Configuration Error: The 'portfolios' table does not exist in your database.\n\nPlease go to the README.md file, copy the SQL script under 'Database Setup', and run it in your Supabase SQL Editor.");
-          } else {
+          
               toast.error("Failed to save portfolio: " + err.message);
-          }
+          
       } finally {
           setIsSaving(false);
       }
