@@ -667,31 +667,44 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ onEnd, config, isPrac
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop();
     }
-    if (screenStreamRef.current) {
-        screenStreamRef.current.getTracks().forEach(track => track.stop());
-        screenStreamRef.current = null;
-    }
+    
   }, []);
 
-  const startRecording = useCallback(async () => {
+    const startRecording = useCallback(async () => {
     if (!videoRef.current?.srcObject || !aiAudioStream || !(videoRef.current.srcObject instanceof MediaStream)) {
         return;
     }
     try {
-        const screenAndSystemAudioStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-        screenStreamRef.current = screenAndSystemAudioStream;
         const userMediaStream = videoRef.current.srcObject as MediaStream;
-        const videoTracks = screenAndSystemAudioStream.getVideoTracks();
-        const audioTracks = [...userMediaStream.getAudioTracks()]; 
-        if (screenAndSystemAudioStream.getAudioTracks().length > 0) {
-            audioTracks.push(...screenAndSystemAudioStream.getAudioTracks());
-        } else {
-            audioTracks.push(...aiAudioStream.getAudioTracks());
+        const videoTracks = userMediaStream.getVideoTracks();
+
+        const audioCtx = new AudioContext();
+        const dest = audioCtx.createMediaStreamDestination();
+
+        if (userMediaStream.getAudioTracks().length > 0) {
+            const micSource = audioCtx.createMediaStreamSource(userMediaStream);
+            micSource.connect(dest);
         }
-        const combinedStream = new MediaStream([...videoTracks, ...audioTracks]);
+
+        if (aiAudioStream.getAudioTracks().length > 0) {
+            const aiSource = audioCtx.createMediaStreamSource(aiAudioStream);
+            aiSource.connect(dest);
+        }
+
+        const mixedAudioTrack = dest.stream.getAudioTracks()[0];
+        const combinedStream = new MediaStream([...videoTracks, mixedAudioTrack]);
+
         recordedChunksRef.current = [];
         const options = { mimeType: 'video/webm; codecs=vp9,opus' };
-        const recorder = new MediaRecorder(combinedStream, MediaRecorder.isTypeSupported(options.mimeType) ? options : undefined);
+        let recorder;
+        if (MediaRecorder.isTypeSupported('video/webm; codecs=vp9,opus')) {
+            recorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm; codecs=vp9,opus' });
+        } else if (MediaRecorder.isTypeSupported('video/webm; codecs=vp8,opus')) {
+            recorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm; codecs=vp8,opus' });
+        } else {
+            recorder = new MediaRecorder(combinedStream);
+        }
+        
         mediaRecorderRef.current = recorder;
         recorder.ondataavailable = (event) => {
             if (event.data.size > 0) recordedChunksRef.current.push(event.data);
@@ -701,19 +714,14 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ onEnd, config, isPrac
             setIsRecording(false);
             setIsSaving(false);
         };
-        screenAndSystemAudioStream.getVideoTracks()[0].onended = () => {
-            if (mediaRecorderRef.current?.state === 'recording') {
-                stopAndSaveRecording();
-                setIsSaving(true);
-            }
-        };
         recorder.start();
         setIsRecording(true);
     } catch (err: any) {
+        console.error('Recording error', err);
         setIsRecording(false);
         setIsSaving(false);
     }
-  }, [aiAudioStream, downloadRecording, stopAndSaveRecording]);
+  }, [aiAudioStream, downloadRecording]);
 
   const handleRecordingButtonClick = useCallback(() => {
     if (isRecording) {
@@ -733,6 +741,12 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ onEnd, config, isPrac
     endInterview();
     onEnd(transcription, feedback, confidenceTrendRef.current);
   }, [isRecording, stopAndSaveRecording, endInterview, onEnd, transcription, feedback]);
+  useEffect(() => {
+    if (sessionStarted && aiAudioStream && !isRecording && !isPracticeMode && videoRef.current?.srcObject) {
+        startRecording();
+    }
+  }, [sessionStarted, aiAudioStream, isRecording, isPracticeMode, startRecording]);
+
 
   useEffect(() => {
     const setupCamera = async () => {
