@@ -6,7 +6,9 @@ import { InterviewStatus, InterviewConfig, TranscriptionEntry, FeedbackEntry, Sa
 import { supabase } from './services/supabaseClient';
 import { useTranslation } from 'react-i18next';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
-import Dashboard from './components/WelcomeScreen'; 
+import SEOProvider from './components/SEOProvider';
+import Dashboard from './components/WelcomeScreen';
+import InviteOnboarding from './components/InviteOnboarding'; 
 
 import InterviewSetup from './components/InterviewSetup';
 import InterviewScreen from './components/InterviewScreen';
@@ -251,7 +253,7 @@ const App: React.FC = () => {
     };
 
     supabase!.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+      setSession(session as any);
       if (session?.user) {
           const initialName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email || '';
           setDisplayName(initialName);
@@ -264,7 +266,7 @@ const App: React.FC = () => {
     });
 
     const { data: { subscription } } = supabase!.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+      setSession(session as any);
       if (session?.user) {
           const initialName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email || '';
           setDisplayName(initialName);
@@ -380,6 +382,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen relative flex flex-col items-center bg-slate-50 dark:bg-[#030712] text-slate-800 dark:text-white transition-colors duration-300">
        <Toaster position="top-center" richColors theme="system" />
+       <SEOProvider />
        {/* Global Background Elements */}
        <div className="fixed inset-0 overflow-hidden pointer-events-none z-[0]">
           <StarryBackground />
@@ -566,6 +569,7 @@ const App: React.FC = () => {
        <main className="w-full mx-auto p-4 sm:p-6 flex-grow flex items-center justify-center animate-fade-in relative z-10">
          <Routes>
             {/* Public Routes */}
+            <Route path="/invite/:inviteToken" element={<><InviteOnboarding session={session} /></>} />
             <Route path="/" element={!session ? <LandingPage 
                 onLogin={() => navigate('/auth')} 
                 onSignup={() => navigate('/auth')} 

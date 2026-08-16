@@ -20,6 +20,7 @@ interface AiAvatarProps {
 
 const AiAvatar: React.FC<AiAvatarProps> = ({ status, persona = 'friendly', audioStream }) => {
     const { t } = useTranslation();
+
     const [audioVolume, setAudioVolume] = useState(0);
     const [isBlinking, setIsBlinking] = useState(false);
     const [eyePosition, setEyePosition] = useState({ x: 0, y: 0 });
@@ -489,13 +490,69 @@ const FeedbackLog: React.FC<{ feedback: FeedbackEntry[] }> = ({ feedback }) => {
 
 const InterviewScreen: React.FC<InterviewScreenProps> = ({ onEnd, config, isPracticeMode }) => {
   const { t } = useTranslation();
+
+  const [activeConfig, setActiveConfig] = useState<InterviewConfig | null>(config || null);
+  const [isLoadingConfig, setIsLoadingConfig] = useState(!config);
+  
+  useEffect(() => {
+      const fetchInviteConfig = async () => {
+          if (config) {
+              setActiveConfig(config);
+              setIsLoadingConfig(false);
+              return;
+          }
+          
+          const searchParams = new URLSearchParams(window.location.search);
+          const inviteId = searchParams.get('inviteId');
+          
+          if (!inviteId) {
+              setIsLoadingConfig(false);
+              return;
+          }
+          
+          // Import supabase locally if not available globally
+          const { supabase } = await import('../services/supabaseClient');
+          if (supabase) {
+              const { data, error } = await supabase.from('invites').select('config').eq('id', inviteId).single();
+              if (data && data.config) {
+                  setActiveConfig(data.config);
+              }
+          }
+          setIsLoadingConfig(false);
+      };
+      
+      fetchInviteConfig();
+  }, [config]);
+
+  if (isLoadingConfig) {
+      return (
+          <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-dark-bg p-6">
+              <div className="w-16 h-16 border-4 border-brand-purple border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-slate-600 dark:text-gray-400 font-medium animate-pulse">Loading interview...</p>
+          </div>
+      );
+  }
+
+  if (!activeConfig) {
+      return (
+          <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-dark-bg p-6 text-center">
+              <div>
+                  <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">⚠️</div>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Interview Not Found</h2>
+                  <p className="text-slate-600 dark:text-gray-400 mb-6">We couldn't load the requested interview configuration.</p>
+                  <button onClick={() => window.location.href = '/dashboard'} className="btn-primary">Return to Dashboard</button>
+              </div>
+          </div>
+      );
+  }
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
   const currentConfidenceRef = useRef<number>(85);
   const confidenceTrendRef = useRef<{time: string, confidence: number}[]>([]);
   
-  const { transcription, aiStatus, isConnecting, error, endInterview, feedback, aiAudioStream, retry, suspendAudio, resumeAudio } = useInterview(config);
+  const { transcription, aiStatus, isConnecting, interviewError: interviewError, endInterview, feedback, aiAudioStream, retry, suspendAudio, resumeAudio } = useInterview(activeConfig!);
 
   const [isRecording, setIsRecording] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -557,7 +614,7 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ onEnd, config, isPrac
   };
 
   useEffect(() => {
-    if (!isConnecting && !error && isFullscreen && sessionStarted) {
+    if (!isConnecting && !interviewError && isFullscreen && sessionStarted) {
       timerIntervalRef.current = window.setInterval(() => {
         setElapsedTime(prevTime => prevTime + 1);
       }, 1000);
@@ -570,7 +627,7 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ onEnd, config, isPrac
     return () => {
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     };
-  }, [isConnecting, error, isFullscreen, sessionStarted]);
+  }, [isConnecting, interviewError, isFullscreen, sessionStarted]);
 
   const formatTime = (totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
@@ -703,14 +760,14 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ onEnd, config, isPrac
     );
   }
 
-  if (error) {
+  if (interviewError) {
     return (
       <div className="w-full max-w-lg mx-auto mt-20 p-8 glass-panel rounded-2xl text-center border border-red-500/30 shadow-[0_0_50px_rgba(234,67,53,0.1)]">
         <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-brand-red" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
         </div>
         <h2 className="text-2xl font-bold mb-2 text-slate-900 dark:text-white">{t('InterviewScreen.connection_interrupted')}</h2>
-        <p className="text-slate-600 dark:text-gray-400 mb-8">{error}</p>
+        <p className="text-slate-600 dark:text-gray-400 mb-8">{interviewError}</p>
         <div className="flex justify-center gap-4">
             <button onClick={retry} className="bg-slate-200 dark:bg-white text-slate-900 dark:text-black hover:bg-slate-300 dark:hover:bg-gray-200 font-bold py-3 px-8 rounded-xl transition-colors">{t('InterviewScreen.retry')}</button>
             <button onClick={() => onEnd(transcription, feedback, confidenceTrendRef.current)} className="bg-transparent border border-slate-300 dark:border-gray-600 hover:bg-slate-100 dark:hover:bg-gray-800 text-slate-700 dark:text-white font-bold py-3 px-8 rounded-xl transition-colors">{t('InterviewScreen.abort')}</button>
@@ -771,7 +828,7 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ onEnd, config, isPrac
                  <span className="text-xs font-mono text-gray-300 tracking-widest uppercase">{sessionStarted && isFullscreen ? t('InterviewScreen.live_session') : t('InterviewScreen.standby')}</span>
               </div>
               <div className="h-4 w-px bg-gray-700"></div>
-              <span className="text-sm text-gray-300 font-medium">{config.name}</span>
+              <span className="text-sm text-gray-300 font-medium">{activeConfig.name}</span>
           </div>
           
           <div className={`flex items-center gap-3 px-4 py-2 rounded-xl border backdrop-blur-md transition-colors duration-300 ${sessionStarted && isFullscreen ? 'bg-brand-blue/10 border-brand-blue/30' : 'bg-white/5 border-white/10'}`}>
@@ -789,7 +846,7 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ onEnd, config, isPrac
         <div className="lg:w-3/5 bg-gradient-to-b from-gray-900 to-black relative flex flex-col">
            
            <div className="flex-1 relative flex items-center justify-center border-b border-white/5 overflow-hidden">
-                <AiAvatar status={aiStatus} persona={config.persona} audioStream={aiAudioStream} />
+                <AiAvatar status={aiStatus} persona={activeConfig.persona} audioStream={aiAudioStream} />
            </div>
 
            <div className="h-48 lg:h-64 relative bg-black border-t border-white/10 group overflow-hidden">

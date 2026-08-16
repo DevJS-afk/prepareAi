@@ -159,6 +159,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
               <button onClick={onAbout} className="px-8 py-4 bg-slate-200/60 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-300/80 dark:border-white/10 text-slate-800 dark:text-white rounded-xl font-bold text-lg backdrop-blur-md transition-all hover:border-slate-400 dark:hover:border-white/30">{t('landing.howItWorks')}</button>
           </div>
 
+          
+          <div className="w-full mx-auto mt-32 px-4 text-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              <h2 className="text-4xl md:text-5xl font-display font-bold text-slate-900 dark:text-white mb-6 animate-fade-in">Everything you need to succeed</h2>
+              <p className="text-slate-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">Our platform provides a complete suite of AI-powered tools designed to help you prepare for interviews, build your career documents, and stand out to recruiters.</p>
+          </div>
+
           {/* Feature Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-32 w-full animate-slide-up px-4" style={{ animationDelay: '0.3s' }}>
               <div className="glass-panel p-8 rounded-3xl text-left border border-slate-200/80 dark:border-white/5 hover:border-brand-blue/50 dark:hover:border-brand-blue/50 transition-all duration-500 hover:-translate-y-2 group shadow-sm">
@@ -183,6 +189,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
                   <p className="text-slate-600 dark:text-gray-400 leading-relaxed">Customize your interviewer's persona and difficulty level for roles in Engineering, Product, and more.</p>
               </div>
           </div>
+
+          
+              <div className="glass-panel p-8 rounded-3xl text-left border border-slate-200/80 dark:border-white/5 hover:border-yellow-500/50 dark:hover:border-yellow-500/50 transition-all duration-500 hover:-translate-y-2 group shadow-sm">
+                  <div className="w-14 h-14 bg-yellow-500/10 rounded-2xl flex items-center justify-center mb-6 text-yellow-500 group-hover:scale-110 transition-transform duration-500 border border-yellow-500/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  </div>
+                  <h3 className="text-2xl font-display font-bold text-slate-950 dark:text-white mb-3">Resume & Portfolio Builder</h3>
+                  <p className="text-slate-600 dark:text-gray-400 leading-relaxed">Leverage AI to construct ATS-friendly resumes and stunning career portfolios tailored to your industry.</p>
+              </div>
+              <div className="glass-panel p-8 rounded-3xl text-left border border-slate-200/80 dark:border-white/5 hover:border-red-500/50 dark:hover:border-red-500/50 transition-all duration-500 hover:-translate-y-2 group shadow-sm">
+                  <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6 text-red-500 group-hover:scale-110 transition-transform duration-500 border border-red-500/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                  </div>
+                  <h3 className="text-2xl font-display font-bold text-slate-950 dark:text-white mb-3">Recruiter Dashboard</h3>
+                  <p className="text-slate-600 dark:text-gray-400 leading-relaxed">Dedicated tools for organizations to generate invite links, configure custom interviews, and track candidate reports.</p>
+              </div>
+              <div className="glass-panel p-8 rounded-3xl text-left border border-slate-200/80 dark:border-white/5 hover:border-pink-500/50 dark:hover:border-pink-500/50 transition-all duration-500 hover:-translate-y-2 group shadow-sm">
+                  <div className="w-14 h-14 bg-pink-500/10 rounded-2xl flex items-center justify-center mb-6 text-pink-500 group-hover:scale-110 transition-transform duration-500 border border-pink-500/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  </div>
+                  <h3 className="text-2xl font-display font-bold text-slate-950 dark:text-white mb-3">Smart Cover Letters</h3>
+                  <p className="text-slate-600 dark:text-gray-400 leading-relaxed">Automate the generation of customized cover letters dynamically adjusted for specific job postings and roles.</p>
+              </div>
 
           {/* Trusted By / Collab Section */}
           <div className="w-full mx-auto mt-32 px-4 text-center animate-slide-up" style={{ animationDelay: '0.4s' }}>
@@ -249,7 +278,47 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
           </div>
       </main>
 
-            {/* Pricing Section */}
+            
+      {/* How it Works Section */}
+      <section className="w-full py-24 relative z-10 border-t border-slate-200/80 dark:border-white/5 bg-slate-50/50 dark:bg-transparent">
+          <div className="mx-auto px-6 max-w-6xl text-center">
+              <h4 className="text-brand-purple font-semibold tracking-wider text-sm uppercase mb-4 tracking-[0.2em]">How it works</h4>
+              <h2 className="text-4xl md:text-5xl font-display font-bold text-slate-900 dark:text-white mb-6 animate-fade-in">From Zero to Confident in Minutes</h2>
+              <p className="text-slate-600 dark:text-gray-400 text-lg mb-20 max-w-2xl mx-auto">No setup required — just describe your event and prepareAI does the rest</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+                  {/* Step 1 */}
+                  <div className="flex flex-col items-center animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                      <div className="w-24 h-24 bg-white dark:bg-slate-900/40 rounded-[2rem] flex items-center justify-center mb-8 border border-brand-purple/20 shadow-xl shadow-brand-purple/5 transition-transform hover:-translate-y-2 duration-300 backdrop-blur-sm">
+                          <span className="text-4xl filter drop-shadow-md">🎯</span>
+                      </div>
+                      <h5 className="text-brand-purple text-xs font-bold tracking-[0.15em] uppercase mb-4">Step 01</h5>
+                      <h3 className="text-2xl font-display font-bold text-slate-900 dark:text-white mb-4">Define Your Event</h3>
+                      <p className="text-slate-600 dark:text-gray-400 leading-relaxed">Tell prepareAI what you're preparing for, your goal, and your target date.</p>
+                  </div>
+                  {/* Step 2 */}
+                  <div className="flex flex-col items-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                      <div className="w-24 h-24 bg-white dark:bg-slate-900/40 rounded-[2rem] flex items-center justify-center mb-8 border border-brand-blue/20 shadow-xl shadow-brand-blue/5 transition-transform hover:-translate-y-2 duration-300 backdrop-blur-sm">
+                          <span className="text-4xl filter drop-shadow-md">🧠</span>
+                      </div>
+                      <h5 className="text-brand-blue text-xs font-bold tracking-[0.15em] uppercase mb-4">Step 02</h5>
+                      <h3 className="text-2xl font-display font-bold text-slate-900 dark:text-white mb-4">Get Your Plan</h3>
+                      <p className="text-slate-600 dark:text-gray-400 leading-relaxed">AI instantly generates a personalized day-by-day curriculum with adaptive content.</p>
+                  </div>
+                  {/* Step 3 */}
+                  <div className="flex flex-col items-center animate-slide-up" style={{ animationDelay: '0.3s' }}>
+                      <div className="w-24 h-24 bg-white dark:bg-slate-900/40 rounded-[2rem] flex items-center justify-center mb-8 border border-brand-green/20 shadow-xl shadow-brand-green/5 transition-transform hover:-translate-y-2 duration-300 backdrop-blur-sm">
+                          <span className="text-4xl filter drop-shadow-md">🏆</span>
+                      </div>
+                      <h5 className="text-brand-green text-xs font-bold tracking-[0.15em] uppercase mb-4">Step 03</h5>
+                      <h3 className="text-2xl font-display font-bold text-slate-900 dark:text-white mb-4">Prepare & Win</h3>
+                      <p className="text-slate-600 dark:text-gray-400 leading-relaxed">Complete daily sessions, track your success probability, and walk in confident.</p>
+                  </div>
+              </div>
+          </div>
+      </section>
+
+      {/* Pricing Section */}
       <section id="pricing" className="w-full py-24 relative z-10 border-t border-slate-200/80 dark:border-white/5 bg-slate-100/50 dark:bg-black/40 backdrop-blur-sm transition-colors duration-300">
          <div className="mx-auto px-6 max-w-6xl">
               <div className="text-center mb-12 animate-slide-up">
