@@ -142,7 +142,7 @@ const EndScreen: React.FC<EndScreenProps> = ({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ transcription, feedback, config }),
+          body: JSON.stringify({ transcription, feedback, config, confidenceTrend }),
         });
 
         if (!response.ok) {
