@@ -2,6 +2,8 @@
 import { Toaster, toast } from 'sonner';
 import React, { useState, useCallback, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { InterviewStatus, InterviewConfig, TranscriptionEntry, FeedbackEntry, SavedCV, SavedPortfolio, Role, SubscriptionTier, Session } from './types';
 import { supabase } from './services/supabaseClient';
 import { useTranslation } from 'react-i18next';
@@ -695,6 +697,8 @@ const App: React.FC = () => {
           &copy; {new Date().getFullYear()} prepareAI. All rights reserved.
        </footer>
        <CookieBanner />
+       <Analytics />
+       <SpeedInsights />
     </div>
   );
 };
