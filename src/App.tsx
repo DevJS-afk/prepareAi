@@ -2,8 +2,6 @@
 import { Toaster, toast } from 'sonner';
 import React, { useState, useCallback, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/react';
 import { InterviewStatus, InterviewConfig, TranscriptionEntry, FeedbackEntry, SavedCV, SavedPortfolio, Role, SubscriptionTier, Session } from './types';
 import { supabase } from './services/supabaseClient';
 import { useTranslation } from 'react-i18next';
@@ -28,6 +26,7 @@ import PricingScreen from './components/PricingScreen';
 import CheckoutScreen from './components/CheckoutScreen';
 import PaymentSuccessScreen from './components/PaymentSuccessScreen';
 import LandingPage from './components/LandingPage';
+import Changelog from './components/Changelog';
 import AboutUs from './components/AboutUs';
 import TermsOfService from './components/TermsOfService';
 import CookieBanner from './components/CookieBanner';
@@ -460,6 +459,11 @@ const App: React.FC = () => {
                             {tokens < 3 && <span className="text-[10px] font-bold bg-brand-red/10 text-brand-red px-1.5 rounded-sm">Low</span>}
                         </div>
                         <button 
+                          onClick={() => navigate('/changelog')} 
+                          className={`text-sm font-medium transition-colors relative group ${location.pathname === '/changelog' ? 'text-brand-green' : 'text-slate-600 hover:text-brand-green dark:text-gray-300 dark:hover:text-brand-green'}`}
+                        >Changelog<span className={`absolute -bottom-1 left-0 h-0.5 bg-brand-green transition-all ${location.pathname === '/changelog' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                        </button>
+                        <button 
                           onClick={() => navigate('/profile')} 
                           className={`text-sm font-medium transition-colors relative group ${location.pathname === '/profile' ? 'text-brand-blue' : 'text-slate-600 hover:text-brand-blue dark:text-gray-300 dark:hover:text-brand-blue'}`}
                         >{t('nav.profile')}<span className={`absolute -bottom-1 left-0 h-0.5 bg-brand-blue transition-all ${location.pathname === '/profile' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
@@ -531,6 +535,11 @@ const App: React.FC = () => {
                       </div>
                       
                       <button 
+                        onClick={() => { navigate('/changelog'); setIsMenuOpen(false); }} 
+                        className={`w-full text-left text-sm font-medium transition-colors py-2 ${location.pathname === '/changelog' ? 'text-brand-green' : 'text-slate-600 dark:text-gray-300'}`}
+                      >Changelog
+                      </button>
+                      <button 
                         onClick={() => { navigate('/profile'); setIsMenuOpen(false); }} 
                         className={`w-full text-left text-sm font-medium transition-colors py-2 ${location.pathname === '/profile' ? 'text-brand-blue' : 'text-slate-600 dark:text-gray-300'}`}
                       >{t('nav.profile')}
@@ -578,6 +587,7 @@ const App: React.FC = () => {
                 onAbout={() => navigate('/about')} 
                 onPrivacy={() => navigate('/privacy')}
                 onTerms={() => navigate('/terms')}
+                onChangelog={() => navigate('/changelog')}
                 theme={theme}
                 toggleTheme={toggleTheme}
               /> : <Navigate to="/dashboard" />} />
@@ -590,6 +600,7 @@ const App: React.FC = () => {
                     <AuthScreen inviteToken={inviteToken} onBack={() => navigate('/')} />
                 </div>
             ) : <Navigate to="/dashboard" />} />
+            <Route path="/changelog" element={<Changelog onBack={() => navigate('/')} />} />
             <Route path="/about" element={<AboutUs onBack={() => navigate('/')} />} />
             <Route path="/privacy" element={<PrivacyPolicy onBack={() => navigate('/')} />} />
             <Route path="/terms" element={<TermsOfService onBack={() => navigate('/')} />} />
@@ -697,8 +708,6 @@ const App: React.FC = () => {
           &copy; {new Date().getFullYear()} prepareAI. All rights reserved.
        </footer>
        <CookieBanner />
-       <Analytics />
-       <SpeedInsights />
     </div>
   );
 };

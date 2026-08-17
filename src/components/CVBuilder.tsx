@@ -65,6 +65,23 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
   const [customSections, setCustomSections] = useState<CustomSection[]>([]);
   
   const [generatedCV, setGeneratedCV] = useState<string>('');
+  const [cvLanguage, setCvLanguage] = useState<string>('Original');
+  const GLOBAL_LANGUAGES = [
+    'Original',
+    'English',
+    'Spanish',
+    'French',
+    'German',
+    'Chinese',
+    'Japanese',
+    'Arabic',
+    'Russian',
+    'Portuguese',
+    'Hindi',
+    'Italian',
+    'Korean'
+  ];
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [zoom, setZoom] = useState(0.65); 
@@ -389,7 +406,39 @@ const formatContent = (text: any) => {
           </html>
         `;
         
-        setGeneratedCV(fullHtml);
+        
+        let finalHtml = fullHtml;
+        if (cvLanguage !== 'Original') {
+            try {
+                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+                const prompt = `
+                    Translate the following HTML CV content into ${cvLanguage}.
+                    Maintain EXACTLY the same HTML structure, tags, classes, and styles.
+                    Translate all visible text, including hardcoded section titles like 'Experience' or 'Education'.
+                    Do NOT wrap the response in markdown blocks. Return only the raw HTML string.
+                    
+                    HTML to translate:
+                    ${fullHtml}
+                `;
+                
+                const response = await ai.models.generateContent({
+                    model: 'gemini-3.1-pro-preview',
+                    contents: prompt,
+                });
+                
+                if (response.text) {
+                    finalHtml = response.text;
+                    if (finalHtml.startsWith('```html')) {
+                        finalHtml = finalHtml.replace(/^```html\n/, '').replace(/\n```$/, '');
+                    }
+                }
+            } catch (err) {
+                console.error("Translation failed", err);
+                toast.error("Failed to translate CV. Showing original.");
+            }
+        }
+        setGeneratedCV(finalHtml);
+
     } catch (error) {
         const errStrConsoleCV2 = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
         if (!(errStrConsoleCV2.includes("429") || errStrConsoleCV2.toLowerCase().includes("quota"))) {
@@ -826,10 +875,28 @@ const formatContent = (text: any) => {
                 </div>
 
                 
+                
+                <div className="space-y-4">
+                    <h3 className="text-sm font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-brand-green"></span>
+                        Language
+                    </h3>
+                    <select 
+                        value={cvLanguage}
+                        onChange={(e) => setCvLanguage(e.target.value)}
+                        className="w-full bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green/50 outline-none text-slate-900 dark:text-white"
+                    >
+                        {GLOBAL_LANGUAGES.map(lang => (
+                            <option key={lang} value={lang}>{lang}</option>
+                        ))}
+                    </select>
+                </div>
+                
                 <div className="space-y-4">
                     <h3 className="text-sm font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-brand-blue"></span>
                         {t('CVBuilder.PersonalDetails')}
+
                     </h3>
                     <div className="flex items-center gap-4 mb-2">
                         <div className="w-16 h-16 rounded-full bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center overflow-hidden shrink-0">
