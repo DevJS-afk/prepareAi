@@ -29,7 +29,7 @@ const CookieBanner: React.FC = () => {
 
   return (
     <div className="fixed bottom-6 left-0 w-full z-[60] px-4 md:px-6 pointer-events-none">
-      <div className="max-w-5xl mx-auto bg-white/95 dark:bg-[#0f1115]/90 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-lg dark:shadow-[0_0_40px_rgba(0,0,0,0.5)] flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pointer-events-auto animate-slide-up ring-1 ring-slate-100 dark:ring-white/5">
+      <div className="mx-auto bg-white/95 dark:bg-[#0f1115]/90 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-lg dark:shadow-[0_0_40px_rgba(0,0,0,0.5)] flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pointer-events-auto animate-slide-up ring-1 ring-slate-100 dark:ring-white/5">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
              <span className="text-xl">🍪</span>

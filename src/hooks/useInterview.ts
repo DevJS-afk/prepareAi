@@ -32,6 +32,7 @@ export const useInterview = (config: InterviewConfig) => {
   const currentOutputTranscriptionRef = useRef('');
 
   const interruptIdRef = useRef(0);
+  const isSessionClosedRef = useRef(false);
   const audioQueuePromiseRef = useRef<Promise<void>>(Promise.resolve());
   const transcriptionRef = useRef(transcription);
   const isAiSpeakingRef = useRef(false);
@@ -74,6 +75,7 @@ Analyze the candidate's response. Provide brief (1-2 sentences), constructive, a
   }, [config]);
 
   const endInterview = useCallback(() => {
+    isSessionClosedRef.current = true;
     if (sessionRef.current) {
       sessionRef.current.close();
       sessionRef.current = null;
@@ -134,6 +136,7 @@ Analyze the candidate's response. Provide brief (1-2 sentences), constructive, a
           setAiAudioStream(destinationNode.stream);
         }
 
+        isSessionClosedRef.current = false;
         const sessionPromise = aiRef.current.live.connect({
           model: 'gemini-3.1-flash-live-preview',
           callbacks: {
@@ -144,9 +147,13 @@ Analyze the candidate's response. Provide brief (1-2 sentences), constructive, a
               
               // Kickstart the conversation with a silent packet to make the AI speak first.
               sessionPromise.then((session) => {
-                const silence = new Float32Array(1600); // 100ms of silence
-                const silentBlob: Blob = createBlob(silence);
-                session.sendRealtimeInput({ audio: silentBlob });
+                if (!isSessionClosedRef.current) {
+                  try {
+                    const silence = new Float32Array(1600); // 100ms of silence
+                    const silentBlob = createBlob(silence);
+                    session.sendRealtimeInput({ audio: silentBlob });
+                  } catch(e) { console.warn("Failed to send silent kickstart", e); }
+                }
               });
 
               mediaStreamSourceRef.current = inputAudioContextRef.current!.createMediaStreamSource(stream);
@@ -154,11 +161,17 @@ Analyze the candidate's response. Provide brief (1-2 sentences), constructive, a
 
               scriptProcessorRef.current.onaudioprocess = (audioProcessingEvent) => {
                 const isPlayingAudio = outputAudioContextRef.current && (nextStartTimeRef.current > outputAudioContextRef.current.currentTime);
-                if (isAiSpeakingRef.current || isPlayingAudio) return;
+                if (isAiSpeakingRef.current || isPlayingAudio || isSessionClosedRef.current) return;
                 const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
                 const pcmBlob: Blob = createBlob(inputData);
                 sessionPromise.then((session) => {
-                  session.sendRealtimeInput({ audio: pcmBlob });
+                  if (!isSessionClosedRef.current) {
+                    try {
+                      session.sendRealtimeInput({ audio: pcmBlob });
+                    } catch(e) {
+                      console.warn("Failed to send audio", e);
+                    }
+                  }
                 });
               };
               
@@ -249,6 +262,10 @@ Analyze the candidate's response. Provide brief (1-2 sentences), constructive, a
             onclose: () => {
                 if (!isMounted) return;
                 console.log("Gemini session closed.");
+                isSessionClosedRef.current = true;
+                if (sessionRef.current) {
+                   sessionRef.current = null;
+                }
             },
           },
           config: {

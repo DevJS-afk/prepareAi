@@ -1,9 +1,11 @@
 {
   "apiKey": "AIzaSyD3zxZ-Z6c-viMVWdwKR5_Gmmn2FI2GMkw",
-  "authDomain": "prepareai.io",
+  "authDomain": "prepareai-e405a.firebaseapp.com",
+  "databaseURL": "https://prepareai-e405a-default-rtdb.firebaseio.com",
   "projectId": "prepareai-e405a",
   "storageBucket": "prepareai-e405a.firebasestorage.app",
   "messagingSenderId": "849821449872",
   "appId": "1:849821449872:web:81dc73debf9a08de73e215",
-  "measurementId": "G-KEFNPGSNMJ"
+  "measurementId": "G-KEFNPGSNMJ",
+  "firestoreDatabaseId": "ai-studio-prepareaivf-ea2a9091-0f39-482c-af85-0fc90e5161a2"
 }

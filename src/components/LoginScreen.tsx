@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../services/firebaseClient';
+import { supabase } from '../services/supabaseClient';
 
 interface LoginScreenProps {
   onSwitchToRegister: () => void;
@@ -73,8 +73,17 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onSwitchToRegister }) => {
       });
       if (error) throw error;
     } catch (error: any) {
-      console.error("Google Login Error:", error);
-      setError(error.message);
+      const isPopupClosed = error?.message?.includes('popup-closed-by-user') || 
+                           error?.message?.includes('cancelled-popup-request') || 
+                           error?.code?.includes('popup-closed-by-user') || 
+                           error?.code?.includes('cancelled-popup-request') ||
+                           String(error).includes('popup-closed-by-user') ||
+                           String(error).includes('cancelled-popup-request');
+                           
+      if (!isPopupClosed) {
+         console.error("Google Login Error:", error);
+         setError(error?.message || String(error));
+      }
       setLoading(false);
     }
   };

@@ -1,6 +1,7 @@
+import { toast } from 'sonner';
 import React, { useEffect, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
-import { supabase } from '../services/firebaseClient';
+import { supabase } from '../services/supabaseClient';
 import type { Invite, LevelKey, PersonaKey, InterviewReport, SuggestedResource, TranscriptionEntry, FeedbackEntry, InterviewConfig } from '../types';
 import { personas } from '../types';
 import EndScreen from './EndScreen';
@@ -129,7 +130,7 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
       e.preventDefault();
       if (!newEmail || !supabase) return;
       if (invites.length >= 25) {
-          alert(t('InterviewerDashboard.inviteLimitAlert'));
+          toast.error(t('InterviewerDashboard.inviteLimitAlert'));
           return;
       }
       setCreating(true);
@@ -150,7 +151,7 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
       const inviteToken = crypto.randomUUID();
       const { data, error } = await supabase.from('invites').insert({ interviewer_id: userId, email: newEmail, token: inviteToken, config: finalConfig, }).select();
       if (error) {
-          alert(t('InterviewerDashboard.inviteError', { message: error.message }));
+          toast.error(t('InterviewerDashboard.inviteError', { message: error.message }));
       } else if (data && data[0]) {
           setNewEmail('');
           setCustomRole('');
@@ -169,7 +170,7 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
       const { error } = await supabase.from('invites').delete().eq('id', inviteId);
       if (error) {
           console.error("Error deleting invite:", error);
-          alert(t('InterviewerDashboard.deleteInviteError', { message: error.message }));
+          toast.error(t('InterviewerDashboard.deleteInviteError', { message: error.message }));
       } else {
           setInvites(prev => prev.filter(i => i.id !== inviteId));
       }
@@ -184,12 +185,12 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
 
   const copyToClipboard = (text: string) => {
       navigator.clipboard.writeText(text);
-      alert(t('InterviewerDashboard.inviteCopied'));
+      toast.success(t('InterviewerDashboard.inviteCopied'));
   };
 
   const handleGenerateDescription = async () => {
     if (!jobTitle || !jobCompany) {
-      alert(t('InterviewerDashboard.jobDescRequired'));
+      toast.error(t('InterviewerDashboard.jobDescRequired'));
       return;
     }
     setGeneratingDescription(true);
@@ -204,7 +205,7 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
       if (data.description) setJobDescription(data.description);
     } catch (err: any) {
       console.error(err);
-      alert(t('InterviewerDashboard.genJobDescError', { message: err.message }));
+      toast.error(t('InterviewerDashboard.genJobDescError', { message: err.message }));
     } finally {
       setGeneratingDescription(false);
     }
@@ -213,7 +214,7 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
   const handleSaveJobOffer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!jobTitle || !jobCompany || !jobLocation || !jobDescription) {
-      alert(t('InterviewerDashboard.saveJobRequired'));
+      toast.error(t('InterviewerDashboard.saveJobRequired'));
       return;
     }
     setSavingJob(true);
@@ -222,17 +223,17 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
       if (editingJobId) {
         const { error } = await supabase.from('job_offers').update(jobData).eq('id', editingJobId);
         if (error) throw error;
-        alert(t('InterviewerDashboard.jobUpdateSuccess'));
+        toast.success(t('InterviewerDashboard.jobUpdateSuccess'));
       } else {
         const { error } = await supabase.from('job_offers').insert(jobData);
         if (error) throw error;
-        alert(t('InterviewerDashboard.jobPostSuccess'));
+        toast.success(t('InterviewerDashboard.jobPostSuccess'));
       }
       resetJobForm();
       fetchJobOffers();
     } catch (err: any) {
       console.error(err);
-      alert(t('InterviewerDashboard.saveJobError', { message: err.message }));
+      toast.error(t('InterviewerDashboard.saveJobError', { message: err.message }));
     } finally {
       setSavingJob(false);
     }
@@ -278,13 +279,13 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
       fetchJobOffers();
     } catch (err: any) {
       console.error(err);
-      alert(t('InterviewerDashboard.deleteJobError', { message: err.message }));
+      toast.error(t('InterviewerDashboard.deleteJobError', { message: err.message }));
     }
   };
 
   if (selectedReportInvite && selectedReportInvite.interviewData) {
       return (
-          <div className="w-full max-w-7xl mx-auto space-y-6 animate-fade-in pb-12">
+          <div className="w-full mx-auto space-y-6 animate-fade-in pb-12">
               <button onClick={() => setSelectedReportInvite(null)} className="flex items-center gap-2 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white transition-colors font-medium mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" /></svg>
                 {t('InterviewerDashboard.backToCandidates')}
@@ -317,7 +318,7 @@ const InterviewerDashboard: React.FC<InterviewerDashboardProps> = ({ onBack, use
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 animate-fade-in pb-12">
+    <div className="w-full mx-auto space-y-8 animate-fade-in pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button onClick={onBack} className="p-2 rounded-lg hover:bg-white/10 transition-colors">

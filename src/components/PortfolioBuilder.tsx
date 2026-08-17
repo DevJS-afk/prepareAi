@@ -1,7 +1,8 @@
+import { toast } from 'sonner';
 
 import React, { useState, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
-import { supabase } from '../services/firebaseClient';
+import { supabase } from '../services/supabaseClient';
 import type { SavedCV, SubscriptionTier } from '../types';
 
 interface PortfolioBuilderProps {
@@ -209,9 +210,9 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
           return publicUrl;
       } catch (error: any) {
           if (error.message && (error.message.includes("Bucket not found") || error.statusCode === '404')) {
-              alert("Configuration Error: The 'portfolio-images' storage bucket does not exist. Please run the Storage Setup SQL script in README.md.");
+              toast.error("Error: Could not upload image to Firebase Storage.");
           } else {
-              alert('Error uploading image: ' + error.message);
+              toast.error('Error uploading image: ' + error.message);
           }
           return null;
       }
@@ -269,12 +270,12 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
       }
 
       if (!textToAnalyze.trim() && !fileData) {
-          alert("Please select a CV, paste text, or upload a PDF to import.");
+          toast.error("Please select a CV, paste text, or upload a PDF to import.");
           return;
       }
       
       if (!process.env.API_KEY) {
-          alert("API Key missing");
+          toast.error("API Key missing");
           return;
       }
 
@@ -359,9 +360,9 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
           }
           const errStr = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
           if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
-              alert("We have temporarily exceeded our AI service quota. Please try again later.");
+              toast.error("We have temporarily exceeded our AI service quota. Please try again later.");
           } else {
-              alert("Failed to analyze resume data.");
+              toast.error("Failed to analyze resume data.");
           }
       } finally {
           setIsAnalyzing(false);
@@ -370,7 +371,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
 
   const handleGenerate = async () => {
     if (!process.env.API_KEY) {
-        alert("API Key missing");
+        toast.error("API Key missing");
         return;
     }
     setIsGenerating(true);
@@ -441,9 +442,9 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
         }
         const errStr = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
         if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
-            alert("We have temporarily exceeded our AI service quota. Please try again later.");
+            toast.error("We have temporarily exceeded our AI service quota. Please try again later.");
         } else {
-            alert("Failed to generate portfolio. Please try again.");
+            toast.error("Failed to generate portfolio. Please try again.");
         }
     } finally {
         setIsGenerating(false);
@@ -453,7 +454,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
   const handleSave = async () => {
       if (!generatedCode) return;
       if (!supabase) {
-          alert("Database connection not available.");
+          toast.error("Database connection not available.");
           return;
       }
       
@@ -461,7 +462,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
       try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) {
-              alert("You must be logged in to save.");
+              toast.error("You must be logged in to save.");
               return;
           }
 
@@ -469,7 +470,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
           if (!currentPortfolioId && subscriptionTier === 'free' && !isAdmin) {
               const { count } = await supabase.from('portfolios').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
               if (count && count >= 1) {
-                  alert("Free Plan Limit: You can only save 1 Portfolio. Please upgrade to Pro for unlimited saves.");
+                  toast.error("Free Plan Limit: You can only save 1 Portfolio. Please upgrade to Pro for unlimited saves.");
                   setIsSaving(false);
                   return;
               }
@@ -484,23 +485,21 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
           if (currentPortfolioId) {
               const { error } = await supabase.from('portfolios').update(payload).eq('id', currentPortfolioId);
               if (error) throw error;
-              alert("Portfolio updated successfully!");
+              toast.success("Portfolio updated successfully!");
           } else {
               const { data, error } = await supabase.from('portfolios').insert({ ...payload, user_id: user.id }).select();
               if (error) throw error;
               if (data && data[0]) {
                   setCurrentPortfolioId(data[0].id);
               }
-              alert("Portfolio saved successfully to your profile!");
+              toast.success("Portfolio saved successfully to your profile!");
           }
 
       } catch (err: any) {
           console.error("Error saving Portfolio:", err);
-          if (err.code === 'PGRST205' || err.message?.includes('does not exist') || err.code === '42P01') {
-              alert("Configuration Error: The 'portfolios' table does not exist in your database.\n\nPlease go to the README.md file, copy the SQL script under 'Database Setup', and run it in your Supabase SQL Editor.");
-          } else {
-              alert("Failed to save portfolio: " + err.message);
-          }
+          
+              toast.error("Failed to save portfolio: " + err.message);
+          
       } finally {
           setIsSaving(false);
       }
@@ -517,7 +516,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
   };
 
   return (
-    <div className="w-[90vw] h-[90vh] flex flex-col glass-panel rounded-2xl overflow-hidden animate-fade-in shadow-2xl relative">
+    <div className="w-full h-[100dvh] sm:w-[95vw] sm:h-[95vh] md:w-[90vw] md:h-[90vh] flex flex-col glass-panel sm:rounded-2xl overflow-hidden animate-fade-in shadow-2xl relative">
         
         {/* Import Modal */}
         {isImporting && (
@@ -593,8 +592,8 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
         )}
 
         {/* Header */}
-        <div className="h-16 border-b border-slate-200 dark:border-white/10 bg-slate-200/30 dark:bg-black/20 flex items-center justify-between px-6 shrink-0 backdrop-blur-md">
-            <div className="flex items-center gap-4">
+        <div className="min-h-[4rem] border-b border-slate-200 dark:border-white/10 bg-slate-200/30 dark:bg-black/20 flex flex-col md:flex-row items-center justify-between p-4 md:px-6 shrink-0 backdrop-blur-md gap-4">
+            <div className="flex items-center gap-4 w-full md:w-auto">
                 <button onClick={onBack} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                 </button>
@@ -637,9 +636,9 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-slate-200/70 dark:bg-black/40">
+        <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden bg-slate-200/70 dark:bg-black/40 relative">
             {/* Left Panel: Inputs */}
-            <div className="lg:w-[400px] xl:w-[450px] flex flex-col border-r border-slate-200 dark:border-white/5 bg-slate-200/30 dark:bg-black/20 overflow-y-auto custom-scrollbar p-6 space-y-8">
+            <div className="w-full lg:w-[400px] xl:w-[450px] flex flex-col border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-white/5 bg-slate-200/30 dark:bg-black/20 lg:overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-6 sm:space-y-8 lg:h-full shrink-0">
                 
                 {/* Theme & Layout Editor Section */}
                 <div className="space-y-4 border-b border-slate-200 dark:border-white/5 pb-6">
@@ -841,7 +840,7 @@ const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ onBack, initialData
             </div>
 
             {/* Right Panel: Preview */}
-            <div className="flex-1 bg-white dark:bg-[#1a1a1a] p-0 overflow-hidden relative flex flex-col">
+            <div className="flex-1 min-h-[500px] lg:min-h-0 bg-white dark:bg-[#1a1a1a] p-0 lg:overflow-hidden relative flex flex-col">
                 {generatedCode && (
                     <div className="bg-black/60 backdrop-blur-md px-4 py-2 border-b border-slate-200 dark:border-white/5 flex items-center justify-between z-10 shrink-0">
                         <div className="flex items-center gap-1.5">

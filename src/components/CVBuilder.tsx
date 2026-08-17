@@ -1,8 +1,9 @@
+import { toast } from 'sonner';
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { marked } from 'marked';
 import { GoogleGenAI } from '@google/genai';
-import { supabase } from '../services/firebaseClient';
+import { supabase } from '../services/supabaseClient';
 import type { SubscriptionTier } from '../types';
 
 interface CVBuilderProps {
@@ -149,7 +150,7 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
   const handleAnalyzeResume = async () => {
       if (!importText.trim() && !importFileBase64) return;
       if (!process.env.API_KEY) {
-          alert("API Key missing");
+          toast.error("API Key missing");
           return;
       }
       setIsAnalyzing(true);
@@ -223,9 +224,9 @@ const CVBuilder: React.FC<CVBuilderProps> = ({ onBack, initialData, cvId, subscr
           }
           const errStr = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
           if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
-              alert("We have temporarily exceeded our AI service quota. Please try again later.");
+              toast.error("We have temporarily exceeded our AI service quota. Please try again later.");
           } else {
-              alert("Failed to analyze resume. Please ensure the file is readable.");
+              toast.error("Failed to analyze resume. Please ensure the file is readable.");
           }
       } finally {
           setIsAnalyzing(false);
@@ -396,9 +397,9 @@ const formatContent = (text: any) => {
         }
         const errStr = String(error) + " " + JSON.stringify(error, Object.getOwnPropertyNames(error || {}));
         if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
-            alert("We have temporarily exceeded our AI service quota. Please try again later.");
+            toast.error("We have temporarily exceeded our AI service quota. Please try again later.");
         } else {
-            alert("Failed to generate CV. Please try again.");
+            toast.error("Failed to generate CV. Please try again.");
         }
     } finally {
         setIsGenerating(false);
@@ -456,9 +457,9 @@ const formatContent = (text: any) => {
           }
           const errStr = String(e) + " " + JSON.stringify(e, Object.getOwnPropertyNames(e || {}));
           if (errStr.includes("429") || errStr.toLowerCase().includes("quota")) {
-              alert("We have temporarily exceeded our AI service quota. Please try again later.");
+              toast.error("We have temporarily exceeded our AI service quota. Please try again later.");
           } else {
-              alert("Scan failed: " + e.message);
+              toast.error("Scan failed: " + e.message);
           }
       } finally {
           setIsScanningAts(false);
@@ -468,7 +469,7 @@ const formatContent = (text: any) => {
   const handleSave = async () => {
       if (!generatedCV) return;
       if (!supabase) {
-          alert("Database connection not available.");
+          toast.error("Database connection not available.");
           return;
       }
       
@@ -476,14 +477,14 @@ const formatContent = (text: any) => {
       try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) {
-              alert("You must be logged in to save.");
+              toast.error("You must be logged in to save.");
               return;
           }
 
           if (!currentCvId && subscriptionTier === 'free' && !isAdmin) {
               const { count } = await supabase.from('cvs').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
               if (count && count >= 1) {
-                  alert("Free Plan Limit: You can only save 1 Resume. Please upgrade to Pro for unlimited saves.");
+                  toast.error("Free Plan Limit: You can only save 1 Resume. Please upgrade to Pro for unlimited saves.");
                   setIsSaving(false);
                   return;
               }
@@ -498,23 +499,21 @@ const formatContent = (text: any) => {
           if (currentCvId) {
               const { error } = await supabase.from('cvs').update(payload).eq('id', currentCvId);
               if (error) throw error;
-              alert("Resume updated successfully!");
+              toast.success("Resume updated successfully!");
           } else {
               const { data, error } = await supabase.from('cvs').insert({ ...payload, user_id: user.id }).select();
               if (error) throw error;
               if (data && data[0]) {
                   setCurrentCvId(data[0].id);
               }
-              alert("Resume saved successfully to your profile!");
+              toast.success("Resume saved successfully to your profile!");
           }
 
       } catch (err: any) {
           console.error("Error saving CV:", err);
-          if (err.code === 'PGRST205' || err.message?.includes('does not exist') || err.code === '42P01') {
-              alert("Configuration Error: The 'cvs' table does not exist in your database.\n\nPlease go to the README.md file, copy the SQL script under 'Database Setup', and run it in your Supabase SQL Editor.");
-          } else {
-              alert("Failed to save resume: " + err.message);
-          }
+          
+              toast.error("Failed to save resume: " + err.message);
+          
       } finally {
           setIsSaving(false);
       }
@@ -572,11 +571,11 @@ const formatContent = (text: any) => {
   };
 
   return (
-    <div className="w-[90vw] h-[90vh] flex flex-col glass-panel rounded-2xl overflow-hidden animate-fade-in shadow-2xl relative">
+    <div className="w-full h-[100dvh] sm:w-[95vw] sm:h-[95vh] md:w-[90vw] md:h-[90vh] flex flex-col glass-panel sm:rounded-2xl overflow-hidden animate-fade-in shadow-2xl relative">
         
         {showAtsModal && (
             <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-                <div className="bg-white dark:bg-[#1a1a1a] w-full max-w-4xl rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col max-h-[85vh] shadow-2xl overflow-hidden">
+                <div className="bg-white dark:bg-[#1a1a1a] w-full rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col max-h-[85vh] shadow-2xl overflow-hidden">
                     <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-slate-200/70 dark:bg-black/40">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg bg-brand-blue/20 flex items-center justify-center text-brand-blue">
@@ -721,8 +720,8 @@ const formatContent = (text: any) => {
             </div>
         )}
 
-        <div className="h-16 border-b border-slate-200 dark:border-white/10 bg-slate-200/30 dark:bg-black/20 flex items-center justify-between px-6 shrink-0 backdrop-blur-md">
-            <div className="flex items-center gap-4">
+        <div className="min-h-[4rem] border-b border-slate-200 dark:border-white/10 bg-slate-200/30 dark:bg-black/20 flex flex-col md:flex-row items-center justify-between p-4 md:px-6 shrink-0 backdrop-blur-md gap-4">
+            <div className="flex items-center gap-4 w-full md:w-auto">
                 <button onClick={onBack} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                 </button>
@@ -732,22 +731,8 @@ const formatContent = (text: any) => {
                 </div>
             </div>
             
-            <div className="flex items-center gap-3">
-                 <div className="relative group">
-                     <select 
-                        value={selectedTemplate}
-                        onChange={(e) => setSelectedTemplate(e.target.value as TemplateType)}
-                        className="appearance-none bg-white dark:bg-slate-900/50 hover:bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 rounded-lg pl-3 pr-8 py-2 text-sm font-medium text-slate-900 dark:text-white transition-colors cursor-pointer outline-none focus:border-brand-purple"
-                     >
-                         <option value="modern">{t('CVBuilder.ModernTech')}</option>
-                         <option value="classic">{t('CVBuilder.ClassicProfessional')}</option>
-                         <option value="creative">{t('CVBuilder.CreativeStudio')}</option>
-                         <option value="minimalist">{t('CVBuilder.Minimalist')}</option>
-                     </select>
-                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                     </div>
-                 </div>
+            <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 justify-start md:justify-end custom-scrollbar shrink-0">
+
 
                  <button 
                     onClick={() => setShowAtsModal(true)}
@@ -803,9 +788,43 @@ const formatContent = (text: any) => {
             </div>
         </div>
 
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-slate-200/70 dark:bg-black/40">
+        <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden bg-slate-200/70 dark:bg-black/40 relative">
             
-            <div className="lg:w-[400px] xl:w-[450px] flex flex-col border-r border-slate-200 dark:border-white/5 bg-slate-200/30 dark:bg-black/20 overflow-y-auto custom-scrollbar p-6 space-y-8">
+            <div className="w-full lg:w-[400px] xl:w-[450px] flex flex-col border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-white/5 bg-slate-200/30 dark:bg-black/20 lg:overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-6 sm:space-y-8 lg:h-full shrink-0">
+                {/* Theme & Layout Editor Section */}
+                <div className="space-y-4 border-b border-slate-200 dark:border-white/5 pb-6">
+                    <h3 className="text-sm font-bold text-brand-purple uppercase tracking-wider flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-brand-purple animate-pulse"></span>
+                        CV Style Theme
+                    </h3>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                        {[
+                            { id: 'modern', name: t('CVBuilder.ModernTech'), colors: 'bg-white border-brand-purple', desc: 'Clean, sans-serif' },
+                            { id: 'classic', name: t('CVBuilder.ClassicProfessional'), colors: 'bg-slate-100 border-gray-400', desc: 'Traditional serif' },
+                            { id: 'creative', name: t('CVBuilder.CreativeStudio'), colors: 'bg-[#1a1a1a] border-pink-500', desc: 'Bold layout' },
+                            { id: 'minimalist', name: t('CVBuilder.Minimalist'), colors: 'bg-gray-50 border-slate-300', desc: 'High whitespace' },
+                        ].map(theme => (
+                            <button
+                                key={theme.id}
+                                type="button"
+                                onClick={() => setSelectedTemplate(theme.id as TemplateType)}
+                                className={`flex flex-col text-left p-2 border text-xs transition-all duration-200 rounded-xl ${
+                                    selectedTemplate === theme.id 
+                                        ? 'bg-white/10 border-brand-purple text-slate-900 dark:text-white shadow-lg shadow-brand-purple/10' 
+                                        : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-white/10'
+                                }`}
+                            >
+                                <div className="flex items-center gap-1.5 font-bold mb-1">
+                                    <span className={`w-2.5 h-2.5 rounded-full ${theme.colors} border`}></span>
+                                    {theme.name}
+                                </div>
+                                <span className="text-[10px] text-slate-500 dark:text-gray-500 leading-tight">{theme.desc}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 
                 <div className="space-y-4">
                     <h3 className="text-sm font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
@@ -964,7 +983,7 @@ const formatContent = (text: any) => {
                 </div>
             </div>
 
-            <div className="flex-1 bg-white dark:bg-[#1a1a1a] p-8 overflow-y-auto flex justify-center items-start custom-scrollbar relative">
+            <div className="flex-1 min-h-[500px] lg:min-h-0 bg-white dark:bg-[#1a1a1a] p-4 sm:p-8 lg:overflow-y-auto flex justify-center items-start custom-scrollbar relative">
                 
                 {generatedCV && (
                     <div className="absolute top-6 right-6 z-10 flex items-center gap-2 bg-black/60 backdrop-blur-md p-1.5 rounded-lg border border-slate-200 dark:border-white/10 shadow-lg">

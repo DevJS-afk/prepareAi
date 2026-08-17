@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface LandingPageProps {
   onLogin: () => void;
@@ -12,7 +13,9 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, onPrivacy, onTerms, theme, toggleTheme }) => {
-  const { t, i18n } = useTranslation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+  const { t } = useTranslation();
 
   const scrollToPricing = () => {
     document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
@@ -29,54 +32,104 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
       </div>
 
       {/* Navigation */}
-      <nav className="w-full max-w-7xl mx-auto px-6 py-6 flex justify-between items-center z-50">
-        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <img src="/logo.svg" alt="prepareAI logo" className="h-10 w-auto group-hover:scale-105 transition-transform duration-300" />
+      <nav className="w-full mx-auto px-6 py-6 z-50">
+        <div className="flex justify-between items-center w-full">
+            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                <img src="/logo.svg" alt="prepareAI logo" className="h-10 w-auto group-hover:scale-105 transition-transform duration-300" />
+            </div>
+            
+            {/* Mobile Toggle */}
+            <div className="flex items-center gap-2 md:hidden">
+              <button 
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="p-2 text-slate-600 dark:text-gray-300"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  {isMenuOpen ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  )}
+                </svg>
+              </button>
+            </div>
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-6 md:gap-8">
+                <div className="flex items-center gap-6">
+                    <button onClick={onAbout} className="text-sm font-medium text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors relative group">
+                        About
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-blue transition-all group-hover:w-full"></span>
+                    </button>
+                    <button onClick={scrollToPricing} className="text-sm font-medium text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors relative group">
+                        Pricing
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-purple transition-all group-hover:w-full"></span>
+                    </button>
+                </div>
+                <div className="flex items-center gap-3 md:gap-4">
+                    <button onClick={onLogin} className="text-sm font-bold text-slate-700 dark:text-white hover:text-brand-blue dark:hover:text-brand-blue transition-colors">{t('landing.login')}</button>
+                    <button onClick={onSignup} className="px-4 py-2 bg-slate-950 text-white dark:bg-white dark:text-black rounded-lg text-sm font-bold hover:bg-slate-800 dark:hover:bg-gray-100 transition-all shadow-md dark:shadow-[0_0_20px_rgba(255,255,255,0.2)]">{t('landing.getStarted')}</button>
+                    
+                    {toggleTheme && (<>
+                      <button 
+                        onClick={toggleTheme} 
+                        className="p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-gray-300 transition-colors duration-200 flex items-center justify-center"
+                        aria-label="Toggle Theme"
+                        id="landing-theme-toggle"
+                      >
+                        {theme === 'dark' ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14.5 12a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                          </svg>
+                        )}
+                      </button>
+                      <LanguageSwitcher />
+                    </>)}
+                </div>
+            </div>
         </div>
-        <div className="flex items-center gap-6 md:gap-8">
-            <div className="hidden md:flex items-center gap-6">
-                <button onClick={onAbout} className="text-sm font-medium text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors relative group">
+        
+        {/* Mobile Navigation Menu */}
+        {isMenuOpen && (
+            <div className="md:hidden flex flex-col gap-4 pt-4 mt-4 border-t border-slate-200 dark:border-white/10 animate-fade-in w-full">
+                <button onClick={() => { onAbout(); setIsMenuOpen(false); }} className="w-full text-left py-2 text-sm font-medium text-slate-600 dark:text-gray-400">
                     About
-                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-blue transition-all group-hover:w-full"></span>
                 </button>
-                <button onClick={scrollToPricing} className="text-sm font-medium text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors relative group">
+                <button onClick={() => { scrollToPricing(); setIsMenuOpen(false); }} className="w-full text-left py-2 text-sm font-medium text-slate-600 dark:text-gray-400">
                     Pricing
-                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-purple transition-all group-hover:w-full"></span>
                 </button>
-            </div>
-            <div className="flex items-center gap-3 md:gap-4">
-                <button onClick={onLogin} className="text-sm font-bold text-slate-700 dark:text-white hover:text-brand-blue dark:hover:text-brand-blue transition-colors">{t('landing.login')}</button>
-                <button onClick={onSignup} className="px-4 py-2 bg-slate-950 text-white dark:bg-white dark:text-black rounded-lg text-sm font-bold hover:bg-slate-800 dark:hover:bg-gray-100 transition-all shadow-md dark:shadow-[0_0_20px_rgba(255,255,255,0.2)]">{t('landing.getStarted')}</button>
+                <button onClick={() => { onLogin(); setIsMenuOpen(false); }} className="w-full text-left py-2 text-sm font-bold text-slate-700 dark:text-white">
+                    {t('landing.login')}
+                </button>
+                <button onClick={() => { onSignup(); setIsMenuOpen(false); }} className="w-full text-left py-2 text-sm font-bold text-brand-blue">
+                    {t('landing.getStarted')}
+                </button>
                 
-                {toggleTheme && (<>
-                  <button 
-                    onClick={toggleTheme} 
-                    className="p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-gray-300 transition-colors duration-200 flex items-center justify-center"
-                    aria-label="Toggle Theme"
-                    id="landing-theme-toggle"
-                  >
-                    {theme === 'dark' ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14.5 12a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                      </svg>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                      </svg>
-                    )}
-                  </button>
-                  <select
-                      className="bg-transparent border-none text-slate-600 dark:text-gray-300 text-sm font-medium focus:ring-0 cursor-pointer outline-none uppercase"
-                      value={i18n.language.split('-')[0]}
-                      onChange={(e) => i18n.changeLanguage(e.target.value)}
-                    >
-                      <option value="en" className="bg-white dark:bg-slate-800">EN</option>
-                      <option value="fr" className="bg-white dark:bg-slate-800">FR</option>
-                      <option value="es" className="bg-white dark:bg-slate-800">ES</option>
-                  </select>
-                </>)}
+                {toggleTheme && (
+                    <div className="flex items-center gap-4 pt-2 w-full">
+                      <button 
+                        onClick={toggleTheme} 
+                        className="p-2 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-gray-300 flex items-center justify-center"
+                      >
+                        {theme === 'dark' ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14.5 12a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                          </svg>
+                        )}
+                      </button>
+                      <LanguageSwitcher />
+                    </div>
+                )}
             </div>
-        </div>
+        )}
       </nav>
 
       {/* Hero Section */}
@@ -89,7 +142,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
               <span className="text-xs font-semibold text-slate-700 dark:text-gray-300 uppercase tracking-wide">Powered by Gemini 2.0</span>
           </div>
           
-          <h1 className="text-5xl md:text-8xl font-display font-bold text-slate-900 dark:text-white mb-8 tracking-tight leading-[1.1] max-w-5xl animate-slide-up text-glow">
+          <h1 className="text-5xl md:text-8xl font-display font-bold text-slate-900 dark:text-white mb-8 tracking-tight leading-[1.1] animate-slide-up text-glow">
               {t('landing.heroTitle1')} <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-blue via-brand-purple to-brand-red">{t('landing.heroTitle2')}</span>
           </h1>
@@ -106,8 +159,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
               <button onClick={onAbout} className="px-8 py-4 bg-slate-200/60 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-300/80 dark:border-white/10 text-slate-800 dark:text-white rounded-xl font-bold text-lg backdrop-blur-md transition-all hover:border-slate-400 dark:hover:border-white/30">{t('landing.howItWorks')}</button>
           </div>
 
+          
+          <div className="w-full mx-auto mt-32 px-4 text-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              <h2 className="text-4xl md:text-5xl font-display font-bold text-slate-900 dark:text-white mb-6 animate-fade-in">Everything you need to succeed</h2>
+              <p className="text-slate-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">Our platform provides a complete suite of AI-powered tools designed to help you prepare for interviews, build your career documents, and stand out to recruiters.</p>
+          </div>
+
           {/* Feature Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-32 max-w-7xl w-full animate-slide-up px-4" style={{ animationDelay: '0.3s' }}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-32 w-full animate-slide-up px-4" style={{ animationDelay: '0.3s' }}>
               <div className="glass-panel p-8 rounded-3xl text-left border border-slate-200/80 dark:border-white/5 hover:border-brand-blue/50 dark:hover:border-brand-blue/50 transition-all duration-500 hover:-translate-y-2 group shadow-sm">
                   <div className="w-14 h-14 bg-brand-blue/10 rounded-2xl flex items-center justify-center mb-6 text-brand-blue group-hover:scale-110 transition-transform duration-500 border border-brand-blue/20">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
@@ -131,8 +190,31 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
               </div>
           </div>
 
+          
+              <div className="glass-panel p-8 rounded-3xl text-left border border-slate-200/80 dark:border-white/5 hover:border-yellow-500/50 dark:hover:border-yellow-500/50 transition-all duration-500 hover:-translate-y-2 group shadow-sm">
+                  <div className="w-14 h-14 bg-yellow-500/10 rounded-2xl flex items-center justify-center mb-6 text-yellow-500 group-hover:scale-110 transition-transform duration-500 border border-yellow-500/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  </div>
+                  <h3 className="text-2xl font-display font-bold text-slate-950 dark:text-white mb-3">Resume & Portfolio Builder</h3>
+                  <p className="text-slate-600 dark:text-gray-400 leading-relaxed">Leverage AI to construct ATS-friendly resumes and stunning career portfolios tailored to your industry.</p>
+              </div>
+              <div className="glass-panel p-8 rounded-3xl text-left border border-slate-200/80 dark:border-white/5 hover:border-red-500/50 dark:hover:border-red-500/50 transition-all duration-500 hover:-translate-y-2 group shadow-sm">
+                  <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6 text-red-500 group-hover:scale-110 transition-transform duration-500 border border-red-500/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                  </div>
+                  <h3 className="text-2xl font-display font-bold text-slate-950 dark:text-white mb-3">Recruiter Dashboard</h3>
+                  <p className="text-slate-600 dark:text-gray-400 leading-relaxed">Dedicated tools for organizations to generate invite links, configure custom interviews, and track candidate reports.</p>
+              </div>
+              <div className="glass-panel p-8 rounded-3xl text-left border border-slate-200/80 dark:border-white/5 hover:border-pink-500/50 dark:hover:border-pink-500/50 transition-all duration-500 hover:-translate-y-2 group shadow-sm">
+                  <div className="w-14 h-14 bg-pink-500/10 rounded-2xl flex items-center justify-center mb-6 text-pink-500 group-hover:scale-110 transition-transform duration-500 border border-pink-500/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  </div>
+                  <h3 className="text-2xl font-display font-bold text-slate-950 dark:text-white mb-3">Smart Cover Letters</h3>
+                  <p className="text-slate-600 dark:text-gray-400 leading-relaxed">Automate the generation of customized cover letters dynamically adjusted for specific job postings and roles.</p>
+              </div>
+
           {/* Trusted By / Collab Section */}
-          <div className="w-full max-w-7xl mx-auto mt-32 px-4 text-center animate-slide-up" style={{ animationDelay: '0.4s' }}>
+          <div className="w-full mx-auto mt-32 px-4 text-center animate-slide-up" style={{ animationDelay: '0.4s' }}>
               <p className="text-sm font-semibold text-slate-500 dark:text-gray-500 uppercase tracking-widest mb-10">Trusted by candidates who landed offers at</p>
               <div className="flex flex-wrap justify-center items-center gap-10 md:gap-20 opacity-60 dark:opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
                   <span className="text-2xl font-bold font-sans text-slate-900 dark:text-white">Google</span>
@@ -144,7 +226,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
           </div>
 
           {/* Testimonials Section */}
-          <div className="w-full max-w-7xl mx-auto mt-32 mb-10 px-4 animate-slide-up" style={{ animationDelay: '0.5s' }}>
+          <div className="w-full mx-auto mt-32 mb-10 px-4 animate-slide-up" style={{ animationDelay: '0.5s' }}>
               <div className="text-center mb-16">
                   <h2 className="text-4xl md:text-5xl font-display font-bold text-slate-900 dark:text-white mb-6 animate-fade-in">Don't just take our word for it</h2>
                   <p className="text-slate-600 dark:text-gray-400 text-lg">Join thousands of candidates who transformed their interview skills.</p>
@@ -196,70 +278,155 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
           </div>
       </main>
 
+            
+      {/* How it Works Section */}
+      <section className="w-full py-24 relative z-10 border-t border-slate-200/80 dark:border-white/5 bg-slate-50/50 dark:bg-transparent">
+          <div className="mx-auto px-6 max-w-6xl text-center">
+              <h4 className="text-brand-purple font-semibold tracking-wider text-sm uppercase mb-4 tracking-[0.2em]">How it works</h4>
+              <h2 className="text-4xl md:text-5xl font-display font-bold text-slate-900 dark:text-white mb-6 animate-fade-in">From Zero to Confident in Minutes</h2>
+              <p className="text-slate-600 dark:text-gray-400 text-lg mb-20 max-w-2xl mx-auto">No setup required — just describe your event and prepareAI does the rest</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+                  {/* Step 1 */}
+                  <div className="flex flex-col items-center animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                      <div className="w-24 h-24 bg-white dark:bg-slate-900/40 rounded-[2rem] flex items-center justify-center mb-8 border border-brand-purple/20 shadow-xl shadow-brand-purple/5 transition-transform hover:-translate-y-2 duration-300 backdrop-blur-sm">
+                          <span className="text-4xl filter drop-shadow-md">🎯</span>
+                      </div>
+                      <h5 className="text-brand-purple text-xs font-bold tracking-[0.15em] uppercase mb-4">Step 01</h5>
+                      <h3 className="text-2xl font-display font-bold text-slate-900 dark:text-white mb-4">Define Your Event</h3>
+                      <p className="text-slate-600 dark:text-gray-400 leading-relaxed">Tell prepareAI what you're preparing for, your goal, and your target date.</p>
+                  </div>
+                  {/* Step 2 */}
+                  <div className="flex flex-col items-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                      <div className="w-24 h-24 bg-white dark:bg-slate-900/40 rounded-[2rem] flex items-center justify-center mb-8 border border-brand-blue/20 shadow-xl shadow-brand-blue/5 transition-transform hover:-translate-y-2 duration-300 backdrop-blur-sm">
+                          <span className="text-4xl filter drop-shadow-md">🧠</span>
+                      </div>
+                      <h5 className="text-brand-blue text-xs font-bold tracking-[0.15em] uppercase mb-4">Step 02</h5>
+                      <h3 className="text-2xl font-display font-bold text-slate-900 dark:text-white mb-4">Get Your Plan</h3>
+                      <p className="text-slate-600 dark:text-gray-400 leading-relaxed">AI instantly generates a personalized day-by-day curriculum with adaptive content.</p>
+                  </div>
+                  {/* Step 3 */}
+                  <div className="flex flex-col items-center animate-slide-up" style={{ animationDelay: '0.3s' }}>
+                      <div className="w-24 h-24 bg-white dark:bg-slate-900/40 rounded-[2rem] flex items-center justify-center mb-8 border border-brand-green/20 shadow-xl shadow-brand-green/5 transition-transform hover:-translate-y-2 duration-300 backdrop-blur-sm">
+                          <span className="text-4xl filter drop-shadow-md">🏆</span>
+                      </div>
+                      <h5 className="text-brand-green text-xs font-bold tracking-[0.15em] uppercase mb-4">Step 03</h5>
+                      <h3 className="text-2xl font-display font-bold text-slate-900 dark:text-white mb-4">Prepare & Win</h3>
+                      <p className="text-slate-600 dark:text-gray-400 leading-relaxed">Complete daily sessions, track your success probability, and walk in confident.</p>
+                  </div>
+              </div>
+          </div>
+      </section>
+
       {/* Pricing Section */}
       <section id="pricing" className="w-full py-24 relative z-10 border-t border-slate-200/80 dark:border-white/5 bg-slate-100/50 dark:bg-black/40 backdrop-blur-sm transition-colors duration-300">
-         <div className="max-w-7xl mx-auto px-6">
-              <div className="text-center mb-20 animate-slide-up">
+         <div className="mx-auto px-6 max-w-6xl">
+              <div className="text-center mb-12 animate-slide-up">
                   <h2 className="text-4xl md:text-5xl font-display font-bold text-slate-950 dark:text-white mb-6">Simple, Transparent Pricing</h2>
-                  <p className="text-slate-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">Invest in your career. Start for free, upgrade when you're ready to master your skills.</p>
+                  <p className="text-slate-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">Start free, upgrade when you need more power</p>
+              </div>
+
+              <div className="flex justify-center mb-16 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                  <div className="bg-slate-200/50 dark:bg-white/5 p-1 rounded-full border border-slate-300/50 dark:border-white/10 flex items-center inline-flex">
+                      <button onClick={() => setBillingCycle('monthly')} className={`${billingCycle === 'monthly' ? 'bg-brand-purple text-white shadow-md' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors'} px-6 py-2 rounded-full text-sm font-bold`}>Monthly</button>
+                      <button onClick={() => setBillingCycle('yearly')} className={`${billingCycle === 'yearly' ? 'bg-brand-purple text-white shadow-md' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors'} px-6 py-2 rounded-full text-sm font-medium flex items-center gap-2`}>
+                          Yearly <span className={`${billingCycle === 'yearly' ? 'text-green-300' : 'text-brand-green'} text-xs font-bold`}>Save 20%</span>
+                      </button>
+                  </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-slide-up" style={{ animationDelay: '0.2s' }}>
                   {/* Free */}
-                  <div className="glass-panel p-10 rounded-3xl border border-slate-200/80 dark:border-white/5 flex flex-col hover:border-slate-300/80 dark:hover:border-white/20 transition-all duration-300 bg-gradient-to-b from-slate-100/30 to-transparent dark:from-white/5 shadow-sm">
-                      <h3 className="text-2xl font-bold text-slate-950 dark:text-white mb-2 font-display">Starter</h3>
-                      <p className="text-slate-500 dark:text-gray-400 text-sm mb-6">Perfect for trying out the platform.</p>
+                  <div className="glass-panel p-10 rounded-3xl border border-slate-200/80 dark:border-white/5 flex flex-col hover:border-slate-300/80 dark:hover:border-white/20 transition-all duration-300 bg-gradient-to-b from-slate-100/30 to-transparent dark:from-white/5 shadow-sm text-left">
+                      <h3 className="text-2xl font-bold text-slate-950 dark:text-white mb-2 font-display">Free</h3>
+                      <p className="text-slate-500 dark:text-gray-400 text-sm mb-6">Perfect for trying PrepareAI</p>
                       <div className="flex items-baseline gap-1 mb-8">
-                          <span className="text-5xl font-extrabold text-slate-950 dark:text-white tracking-tight">Free</span>
+                          <span className="text-5xl font-extrabold text-slate-950 dark:text-white tracking-tight">$0</span>
+                          <span className="text-slate-500 dark:text-gray-400 font-medium">/month</span>
                       </div>
-                      <ul className="space-y-4 mb-8 flex-1 text-slate-700 dark:text-gray-300">
-                          <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-brand-green"></div> 1 Full AI Interview Session</li>
-                          <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-brand-green"></div> Basic Performance Report</li>
-                          <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-brand-green"></div> Standard CV Builder</li>
+                      <button onClick={onSignup} className="w-full py-3 mb-8 rounded-xl font-bold bg-slate-900/5 hover:bg-slate-900/10 text-slate-900 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white transition-all border border-slate-200 dark:border-white/10 shadow-sm">Get Started Free</button>
+                      <ul className="space-y-4 flex-1 text-slate-700 dark:text-gray-300 text-sm">
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> 5 free tokens included</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> 3 tokens per interview</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Basic curriculum generation</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Flashcards & quizzes</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Success probability score</li>
                       </ul>
-                      <button onClick={onSignup} className="w-full py-4 rounded-xl font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white/10 dark:hover:bg-white/20 dark:text-white transition-all border border-transparent dark:border-white/10">{t('landing.getStarted')}</button>
                   </div>
 
                   {/* Pro */}
-                  <div className="glass-panel p-10 rounded-3xl border border-brand-purple/50 flex flex-col relative transform md:-translate-y-4 shadow-lg shadow-brand-purple/10 dark:shadow-[0_0_50px_rgba(168,85,247,0.15)] hover:shadow-xl hover:shadow-brand-purple/20 transition-all duration-300 bg-gradient-to-b from-brand-purple/5 to-transparent dark:from-brand-purple/10">
-                      <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-brand-purple text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg">Most Popular</div>
-                      <h3 className="text-2xl font-bold text-brand-purple mb-2 font-display">Pro Candidate</h3>
-                      <p className="text-slate-500 dark:text-gray-400 text-sm mb-6">For serious job seekers.</p>
+                  <div className="glass-panel p-10 rounded-3xl border border-brand-purple/50 flex flex-col relative transform md:-translate-y-4 shadow-lg shadow-brand-purple/10 dark:shadow-[0_0_50px_rgba(168,85,247,0.15)] hover:shadow-xl hover:shadow-brand-purple/20 transition-all duration-300 bg-gradient-to-b from-brand-purple/5 to-transparent dark:from-brand-purple/10 text-left">
+                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-brand-purple text-white px-4 py-1 rounded-full text-xs font-bold tracking-wide shadow-lg border border-white/20">Most Popular</div>
+                      <h3 className="text-2xl font-bold text-slate-950 dark:text-white mb-2 font-display">Pro</h3>
+                      <p className="text-slate-500 dark:text-gray-400 text-sm mb-6">For serious preparation</p>
                       <div className="flex items-baseline gap-1 mb-8">
-                          <span className="text-5xl font-extrabold text-slate-950 dark:text-white tracking-tight">$15</span>
-                          <span className="text-slate-500 dark:text-gray-400 font-medium">/month</span>
+                          <span className="text-5xl font-extrabold text-slate-950 dark:text-white tracking-tight">{billingCycle === 'monthly' ? '$29' : '$279'}</span>
+                          <span className="text-slate-500 dark:text-gray-400 font-medium">{billingCycle === 'monthly' ? '/month' : '/year'}</span>
                       </div>
-                      <ul className="space-y-4 mb-8 flex-1 text-slate-700 dark:text-gray-300">
-                          <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-brand-purple"></div> Unlimited AI Sessions</li>
-                          <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-brand-purple"></div> Advanced Behavioral Analysis</li>
-                          <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-brand-purple"></div> Unlimited CV & Portfolio Builds</li>
-                          <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-brand-purple"></div> Priority AI Processing</li>
+                      <button onClick={onSignup} className="w-full py-3 mb-8 rounded-xl font-bold bg-gradient-to-r from-brand-purple to-blue-500 hover:opacity-90 text-white transition-all shadow-md flex items-center justify-center gap-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" /></svg>
+                          Start Pro
+                      </button>
+                      <ul className="space-y-4 flex-1 text-slate-700 dark:text-gray-300 text-sm">
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Unlimited events</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Unlimited AI calls</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Document uploads</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Mock simulations & interviews</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Advanced analytics</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Priority AI tutor</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Adaptive difficulty</li>
                       </ul>
-                      <button onClick={onSignup} className="w-full py-4 rounded-xl font-bold bg-brand-purple hover:bg-brand-purple/90 text-white dark:bg-white dark:text-black dark:hover:bg-gray-200 transition-all shadow-md">Start Pro Trial</button>
                   </div>
 
-                  {/* Recruiter */}
-                  <div className="glass-panel p-10 rounded-3xl border border-slate-200/80 dark:border-white/5 flex flex-col hover:border-slate-300/80 dark:hover:border-brand-green/30 transition-all duration-300 bg-gradient-to-b from-slate-100/30 to-transparent dark:from-white/5 shadow-sm">
-                      <h3 className="text-2xl font-bold text-slate-950 dark:text-white mb-2 font-display">Recruiter</h3>
-                      <p className="text-slate-500 dark:text-gray-400 text-sm mb-6">Scale your hiring process.</p>
+                  {/* Enterprise */}
+                  <div className="glass-panel p-10 rounded-3xl border border-slate-200/80 dark:border-white/5 flex flex-col hover:border-slate-300/80 dark:hover:border-white/20 transition-all duration-300 bg-gradient-to-b from-slate-100/30 to-transparent dark:from-white/5 shadow-sm text-left">
+                      <h3 className="text-2xl font-bold text-slate-950 dark:text-white mb-2 font-display">Enterprise</h3>
+                      <p className="text-slate-500 dark:text-gray-400 text-sm mb-6">For teams & organizations</p>
                       <div className="flex items-baseline gap-1 mb-8">
-                          <span className="text-5xl font-extrabold text-slate-950 dark:text-white tracking-tight">$49</span>
-                          <span className="text-slate-500 dark:text-gray-400 font-medium">/month</span>
+                          <span className="text-5xl font-extrabold text-slate-950 dark:text-white tracking-tight">{billingCycle === 'monthly' ? '$99' : '$949'}</span>
+                          <span className="text-slate-500 dark:text-gray-400 font-medium">{billingCycle === 'monthly' ? '/month' : '/year'}</span>
                       </div>
-                      <ul className="space-y-4 mb-8 flex-1 text-slate-700 dark:text-gray-300">
-                          <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-brand-green"></div> Everything in Pro</li>
-                          <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-brand-green"></div> Invite & Manage Candidates</li>
-                          <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-brand-green"></div> View Candidate Reports</li>
-                          <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-brand-green"></div> Custom Interview Config</li>
+                      <button onClick={onSignup} className="w-full py-3 mb-8 rounded-xl font-bold bg-slate-900/5 hover:bg-slate-900/10 text-slate-900 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white transition-all border border-slate-200 dark:border-white/10 shadow-sm">Contact Sales</button>
+                      <ul className="space-y-4 flex-1 text-slate-700 dark:text-gray-300 text-sm">
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Everything in Pro</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Team dashboards</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Custom integrations</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Admin analytics</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Dedicated support</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Custom domain</li>
+                          <li className="flex items-center gap-3"><svg className="w-4 h-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> SLA guarantee</li>
                       </ul>
-                      <button onClick={onSignup} className="w-full py-4 rounded-xl font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white/10 dark:hover:bg-white/20 dark:text-white transition-all border border-transparent dark:border-white/10">Contact Sales</button>
                   </div>
               </div>
          </div>
       </section>
 
+
+      {/* Data Privacy & Transparency Section */}
+      <section className="w-full mx-auto px-6 py-20 relative z-10 text-center border-t border-slate-200/80 dark:border-white/5 bg-slate-50 dark:bg-transparent">
+         <div className="max-w-4xl mx-auto glass-panel p-10 rounded-3xl border border-slate-200/80 dark:border-white/5">
+              <div className="w-16 h-16 bg-brand-blue/10 dark:bg-brand-blue/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-brand-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-extrabold mb-6 text-slate-950 dark:text-white font-display">Data Privacy & Transparency</h2>
+              <p className="text-base text-slate-600 dark:text-gray-300 mb-8 leading-relaxed">
+                  <strong>prepareAI</strong> is fully committed to protecting your privacy. We only request the data necessary to provide you with a personalized coaching experience.
+                  <br/><br/>
+                  When you sign in or use our platform, we access your basic profile (like email and name) solely to authenticate you and sync your session history. Any files you provide (such as your resume or cover letter) are used strictly to generate realistic, tailored interview questions and feedback using Google Gemini models. Your data is securely hosted on our verified servers and is never sold to third parties.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <button onClick={onPrivacy} className="px-8 py-3 rounded-xl font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-gray-100 transition-all shadow-md">
+                      Read Privacy Policy
+                  </button>
+                  <button onClick={onTerms} className="px-8 py-3 rounded-xl font-bold bg-white dark:bg-black/40 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all">
+                      Terms of Service
+                  </button>
+              </div>
+         </div>
+      </section>
+
       <footer className="w-full border-t border-slate-200/80 dark:border-white/5 py-10 text-center text-slate-500 dark:text-gray-400 text-sm relative z-10 bg-slate-100 dark:bg-black/40 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
+          <div className="mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
               <p>&copy; {new Date().getFullYear()} prepareAI. Built by DevJs.</p>
               <div className="flex gap-8 mt-4 md:mt-0">
                   <button onClick={onAbout} className="hover:text-slate-900 dark:hover:text-white transition-colors">About</button>

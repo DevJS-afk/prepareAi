@@ -1,6 +1,8 @@
+import { toast } from 'sonner';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../services/firebaseClient';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
+import { supabase } from '../services/supabaseClient';
 import { GoogleGenAI } from '@google/genai';
 import type { InterviewConfig, TranscriptionEntry, FeedbackEntry, InterviewReport, SuggestedResource, SavedCV, SavedLetter, SavedPortfolio, SubscriptionTier, Session } from '../types';
 import EndScreen from './EndScreen';
@@ -33,7 +35,7 @@ interface ProfileScreenProps {
   onManagePlan: () => void;
 }
 
-type TabView = 'history' | 'cvs' | 'letters' | 'portfolios';
+type TabView = 'history' | 'progress' | 'cvs' | 'letters' | 'portfolios';
 
 // Extended type to handle viewing/editing
 interface DocViewerState {
@@ -110,8 +112,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
                 }
             } else if (error.code === '42P17') {
                 // Infinite recursion detected in DB policy
-                console.error("Critical DB Error: Infinite recursion in 'profiles' policy. Run the fix SQL script.");
-                setError("Database Config Error: Infinite recursion detected. Please run the FIX SQL script located in README.md");
+                console.error("Critical DB Error: Infinite recursion or permission denied in profiles.");
+                setError("Database Error: Could not fetch profile due to permissions.");
                 setLoading(false);
                 return;
             } else {
@@ -232,7 +234,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
       const file = e.target.files?.[0];
       if (!file) return;
       if (!process.env.API_KEY) {
-          alert("API Key missing");
+          toast.error("API Key missing");
           return;
       }
       setIsImportingCV(true);
@@ -272,7 +274,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
               }));
           } catch (error) {
               console.error("Failed to parse CV", error);
-              alert("Failed to auto-fill from CV.");
+              toast.error("Failed to auto-fill from CV.");
           } finally {
               setIsImportingCV(false);
           }
@@ -326,11 +328,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
 
     } catch (error: any) {
         if (error.message && (error.message.includes("Bucket not found") || error.statusCode === '404')) {
-            alert("Configuration Error: The 'avatars' storage bucket does not exist. Please run the STORAGE SETUP SQL script found in README.md.");
+            toast.error("Error: Could not upload avatar to Firebase Storage.");
         } else if (error.code === '42703' || (error.message && error.message.includes('avatar_url'))) {
-            alert("Database Error: The 'avatar_url' column is missing. Please run the 'Fix Database Schema' script in README.md.");
+            toast.error("Database Error: The 'avatar_url' column is missing. Please run the 'Fix Database Schema' script in README.md.");
         } else {
-            alert('Error uploading avatar: ' + error.message);
+            toast.error('Error uploading avatar: ' + error.message);
         }
     } finally {
         setUploadingAvatar(false);
@@ -423,7 +425,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
           
           handleCloseDoc();
       } catch (err: any) {
-          alert("Error deleting document: " + err.message);
+          toast.error("Error deleting document: " + err.message);
       }
   };
 
@@ -473,14 +475,35 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
           setIsEditingDoc(false);
 
       } catch (err: any) {
-          alert("Failed to update: " + err.message);
+          toast.error("Failed to update: " + err.message);
       } finally {
           setIsSavingDoc(false);
       }
   };
 
+
+  const progressData = React.useMemo(() => {
+    return [...interviews].reverse().map((interview, index) => {
+      let avgConfidence = 0;
+      if (interview.report?.confidenceTrend && interview.report.confidenceTrend.length > 0) {
+        const sum = interview.report.confidenceTrend.reduce((acc, curr) => acc + curr.confidence, 0);
+        avgConfidence = Math.round(sum / interview.report.confidenceTrend.length);
+      }
+      return {
+        name: `Session ${index + 1}`,
+        date: new Date(interview.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        overall: interview.report?.overallScore || 0,
+        clarity: interview.report?.clarityRating || 0,
+        confidence: avgConfidence
+      };
+    });
+  }, [interviews]);
+
   if (loading) {
-    return (
+    
+  
+
+  return (
       <div className="flex flex-col items-center justify-center h-[50vh]">
         <div className="w-12 h-12 border-4 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
       </div>
@@ -490,7 +513,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
   // Render Interview Report View
   if (selectedInterview) {
     return (
-      <div className="w-full max-w-7xl mx-auto space-y-6">
+      <div className="w-full mx-auto space-y-6">
         <button onClick={() => setSelectedInterview(null)} className="flex items-center gap-2 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white transition-colors font-medium">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" /></svg>
             Back to Dashboard
@@ -515,7 +538,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
       const isHtmlPreview = !isEditingDoc && (viewingDoc.type === 'cv' || viewingDoc.type === 'portfolio');
       return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
-            <div className="bg-white text-black w-full max-w-5xl h-[85vh] max-h-[85vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl relative">
+            <div className="bg-white text-black w-full h-[85vh] max-h-[85vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl relative">
                 
                 {/* Modal Header */}
                 <div className="p-4 bg-gray-100 border-b flex justify-between items-center shrink-0">
@@ -624,9 +647,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-8 animate-fade-in pb-12">
+    <div className="w-full mx-auto space-y-8 animate-fade-in pb-12">
       <div className="flex items-center gap-3">
-          <button onClick={onBack} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
+          <button onClick={onBack} className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           </button>
           <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Your Profile</h2>
@@ -761,6 +784,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
                       Session History
                   </button>
                   <button 
+                    onClick={() => setActiveTab('progress')}
+                    className={`pb-2 text-sm font-bold transition-colors whitespace-nowrap ${activeTab === 'progress' ? 'text-pink-500 border-b-2 border-pink-500' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white'}`}
+                  >
+                      Progress
+                  </button>
+                  <button 
                     onClick={() => setActiveTab('cvs')}
                     className={`pb-2 text-sm font-bold transition-colors whitespace-nowrap ${activeTab === 'cvs' ? 'text-brand-purple border-b-2 border-brand-purple' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white'}`}
                   >
@@ -783,13 +812,97 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
               {error && <p className="text-red-400 bg-red-500/10 p-4 rounded-xl border border-red-500/20">{error}</p>}
               
               <div className="space-y-4 min-h-[300px]">
+                  
+                  {/* PROGRESS TAB */}
+                  {activeTab === 'progress' && (
+                      <div className="space-y-8 animate-fade-in">
+                          {progressData.length > 0 ? (
+                              <>
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                      <div className="glass-panel p-6 rounded-2xl flex flex-col justify-center border-brand-purple/20">
+                                          <p className="text-sm text-slate-500 dark:text-gray-400 font-medium mb-1">Avg Overall Score</p>
+                                          <p className="text-3xl font-bold text-slate-900 dark:text-white">
+                                              {Math.round(progressData.reduce((acc, curr) => acc + curr.overall, 0) / progressData.length)}<span className="text-sm font-normal text-slate-500">/100</span>
+                                          </p>
+                                      </div>
+                                      <div className="glass-panel p-6 rounded-2xl flex flex-col justify-center border-brand-blue/20">
+                                          <p className="text-sm text-slate-500 dark:text-gray-400 font-medium mb-1">Avg Confidence</p>
+                                          <p className="text-3xl font-bold text-slate-900 dark:text-white">
+                                              {Math.round(progressData.reduce((acc, curr) => acc + curr.confidence, 0) / progressData.length)}<span className="text-sm font-normal text-slate-500">%</span>
+                                          </p>
+                                      </div>
+                                      <div className="glass-panel p-6 rounded-2xl flex flex-col justify-center border-brand-green/20">
+                                          <p className="text-sm text-slate-500 dark:text-gray-400 font-medium mb-1">Total Sessions</p>
+                                          <p className="text-3xl font-bold text-slate-900 dark:text-white">{progressData.length}</p>
+                                      </div>
+                                  </div>
+
+                                  <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/5">
+                                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Performance Timeline</h3>
+                                      <div className="h-80 w-full">
+                                          <ResponsiveContainer width="100%" height="100%">
+                                              <AreaChart data={progressData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                                  <defs>
+                                                      <linearGradient id="colorOverall" x1="0" y1="0" x2="0" y2="1">
+                                                          <stop offset="5%" stopColor="#A855F7" stopOpacity={0.3} />
+                                                          <stop offset="95%" stopColor="#A855F7" stopOpacity={0} />
+                                                      </linearGradient>
+                                                      <linearGradient id="colorConfidence" x1="0" y1="0" x2="0" y2="1">
+                                                          <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
+                                                          <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                                                      </linearGradient>
+                                                  </defs>
+                                                  <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                                  <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} domain={[0, 100]} />
+                                                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333333" opacity={0.2} />
+                                                  <RechartsTooltip 
+                                                      contentStyle={{ backgroundColor: 'rgba(17, 24, 39, 0.8)', borderRadius: '8px', border: 'none', color: '#fff' }}
+                                                      itemStyle={{ color: '#fff' }}
+                                                  />
+                                                  <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px' }}/>
+                                                  <Area type="monotone" name="Overall Score" dataKey="overall" stroke="#A855F7" strokeWidth={3} fillOpacity={1} fill="url(#colorOverall)" />
+                                                  <Area type="monotone" name="Confidence Level" dataKey="confidence" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorConfidence)" />
+                                              </AreaChart>
+                                          </ResponsiveContainer>
+                                      </div>
+                                  </div>
+                                  
+                                  <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/5">
+                                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Clarity & Communication</h3>
+                                      <div className="h-64 w-full">
+                                          <ResponsiveContainer width="100%" height="100%">
+                                              <LineChart data={progressData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                                  <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                                  <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} />
+                                                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333333" opacity={0.2} />
+                                                  <RechartsTooltip 
+                                                      contentStyle={{ backgroundColor: 'rgba(17, 24, 39, 0.8)', borderRadius: '8px', border: 'none', color: '#fff' }}
+                                                  />
+                                                  <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px' }}/>
+                                                  <Line type="monotone" name="Clarity Score" dataKey="clarity" stroke="#22C55E" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                                              </LineChart>
+                                          </ResponsiveContainer>
+                                      </div>
+                                  </div>
+                              </>
+                          ) : (
+                              <div className="text-center py-20">
+                                  <div className="w-16 h-16 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">📈</div>
+                                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No progress data yet</h3>
+                                  <p className="text-slate-500 dark:text-gray-400">Complete an interview session to see your progress trends.</p>
+                              </div>
+                          )}
+                      </div>
+                  )}
+
+
                   {/* HISTORY TAB */}
                   {activeTab === 'history' && (
                       interviews.length > 0 ? interviews.map((interview) => (
                           <div 
                             key={interview.id} 
                             onClick={() => setSelectedInterview(interview)}
-                            className="glass-panel p-6 rounded-xl hover:bg-slate-100 dark:bg-white/5 transition-all cursor-pointer group border border-slate-200 dark:border-white/5 hover:border-brand-blue/30 relative overflow-hidden"
+                            className="bg-white/50 dark:bg-white/5 p-6 rounded-2xl hover:bg-white dark:hover:bg-white/10 transition-all cursor-pointer group border border-transparent shadow-sm hover:shadow-md hover:border-slate-200 dark:hover:border-white/10 relative overflow-hidden"
                           >
                               <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-brand-blue to-brand-purple opacity-0 group-hover:opacity-100 transition-opacity"></div>
                               <div className="flex justify-between items-center">

@@ -10,13 +10,17 @@ interface PricingScreenProps {
 }
 
 const PricingScreen: React.FC<PricingScreenProps> = ({ onBack, currentTier, onUpgrade }) => {
+  const [billingCycle, setBillingCycle] = React.useState<"monthly" | "yearly">("monthly");
   
   const handleSelectPlan = (tier: SubscriptionTier, price: string, name: string) => {
     if (tier === currentTier) return;
     onUpgrade(tier, price, name);
   };
 
-  const PlanCard = ({ tier, price, name, features, popular = false }: { tier: SubscriptionTier, price: string, name: string, features: string[], popular?: boolean }) => {
+  const PlanCard = ({ tier, price, name, features, popular = false, isYearly = false }: { tier: SubscriptionTier, price: string, name: string, features: string[], popular?: boolean, isYearly?: boolean }) => {
+    let sub = "Perfect for trying PrepareAI";
+    if (tier === 'pro') sub = "For serious preparation";
+    if (tier === 'recruiter') sub = "For teams & organizations";
       const isCurrent = currentTier === tier;
       
       return (
@@ -26,10 +30,10 @@ const PricingScreen: React.FC<PricingScreenProps> = ({ onBack, currentTier, onUp
                      Most Popular
                  </div>
              )}
-             <h3 className={`text-2xl font-display font-bold mb-2 ${popular ? 'text-brand-purple' : 'text-slate-900 dark:text-white'}`}>{name}</h3>
+             <h3 className={`text-2xl font-display font-bold mb-2 ${popular ? 'text-brand-purple' : 'text-slate-900 dark:text-white'}`}>{name}</h3><p className="text-slate-500 dark:text-gray-400 text-sm mb-6">{sub}</p>
              <div className="flex items-baseline gap-1 mb-8">
                  <span className="text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">{price}</span>
-                 {price !== 'Free' && <span className="text-slate-500 dark:text-gray-400 font-medium">/month</span>}
+                 {price !== '$0' && <span className="text-slate-500 dark:text-gray-400 font-medium">{isYearly ? "/year" : "/month"}</span>}
              </div>
              
              <ul className="space-y-4 mb-8 flex-1">
@@ -52,61 +56,76 @@ const PricingScreen: React.FC<PricingScreenProps> = ({ onBack, currentTier, onUp
                         : 'bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-white/20 border border-slate-200 dark:border-white/10'
                 }`}
              >
-                 {isCurrent ? 'Current Plan' : (tier === 'free' ? 'Downgrade' : 'Choose Plan')}
+                 {isCurrent ? 'Current Plan' : (tier === 'free' ? 'Get Started Free' : tier === 'pro' ? '⚡ Start Pro' : 'Contact Sales')}
              </button>
         </div>
       );
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto animate-fade-in pb-12 py-8">
+    <div className="w-full mx-auto animate-fade-in pb-12 py-8">
        <button onClick={onBack} className="mb-10 flex items-center gap-2 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors group">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 transform group-hover:-translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" /></svg>
             Back to Dashboard
        </button>
        
-       <div className="text-center mb-16">
-           <h1 className="text-4xl md:text-5xl font-display font-bold text-slate-900 dark:text-white mb-6">Choose Your Path to Success</h1>
-           <p className="text-xl text-slate-500 dark:text-gray-400 max-w-2xl mx-auto font-light">Unlock advanced AI interview features or streamline your hiring process with our dedicated plans.</p>
+       <div className="text-center mb-12 animate-slide-up">
+           <h1 className="text-4xl md:text-5xl font-display font-bold text-slate-900 dark:text-white mb-6">Simple, Transparent Pricing</h1>
+           <p className="text-xl text-slate-500 dark:text-gray-400 max-w-2xl mx-auto font-light">Start free, upgrade when you need more power</p>
+       </div>
+
+       <div className="flex justify-center mb-16 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+           <div className="bg-slate-200/50 dark:bg-white/5 p-1 rounded-full border border-slate-300/50 dark:border-white/10 flex items-center inline-flex">
+               <button onClick={() => setBillingCycle('monthly')} className={`${billingCycle === 'monthly' ? 'bg-brand-purple text-white shadow-md' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors'} px-6 py-2 rounded-full text-sm font-bold`}>Monthly</button>
+               <button onClick={() => setBillingCycle('yearly')} className={`${billingCycle === 'yearly' ? 'bg-brand-purple text-white shadow-md' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors'} px-6 py-2 rounded-full text-sm font-medium flex items-center gap-2`}>
+                   Yearly <span className={`${billingCycle === 'yearly' ? 'text-green-300' : 'text-brand-green'} text-xs font-bold`}>Save 20%</span>
+               </button>
+           </div>
        </div>
 
        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <PlanCard 
                 tier="free"
-                name="Starter"
-                price="Free"
+                name="Free"
+                price="$0"
+                isYearly={billingCycle === "yearly"}
                 features={[
-                    "1 Full AI Interview Session",
-                    "Basic Performance Report",
-                    "Standard CV Builder Access",
-                    "Limited Feedback"
+                    "5 free tokens included",
+                    "3 tokens per interview",
+                    "Basic curriculum generation",
+                    "Flashcards & quizzes",
+                    "Success probability score"
                 ]}
             />
             <PlanCard 
                 tier="pro"
-                name="Pro Candidate"
-                price="$15"
+                name="Pro"
+                price={billingCycle === "monthly" ? "$29" : "$279"}
+                isYearly={billingCycle === "yearly"}
                 popular={true}
                 features={[
-                    "Unlimited AI Interview Sessions",
-                    "Advanced Behavioral Analysis",
-                    "Unlimited CV & Portfolio Builds",
-                    "Priority AI Processing",
-                    "Deep Feedback & Action Plans",
-                    "Access to all Domain Roles"
+                    "Unlimited events",
+                    "Unlimited AI calls",
+                    "Document uploads",
+                    "Mock simulations & interviews",
+                    "Advanced analytics",
+                    "Priority AI tutor",
+                    "Adaptive difficulty"
                 ]}
             />
             <PlanCard 
                 tier="recruiter"
-                name="Recruiter / Enterprise"
-                price="$49"
+                name="Enterprise"
+                price={billingCycle === "monthly" ? "$99" : "$949"}
+                isYearly={billingCycle === "yearly"}
                 features={[
                     "Everything in Pro",
-                    "Invite & Manage Candidates",
-                    "View Candidate Reports",
-                    "Custom Interview Configuration",
-                    "Team Dashboard Access",
-                    "Dedicated Support"
+                    "Team dashboards",
+                    "Custom integrations",
+                    "Admin analytics",
+                    "Dedicated support",
+                    "Custom domain",
+                    "SLA guarantee"
                 ]}
             />
        </div>

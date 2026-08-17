@@ -1,6 +1,7 @@
+import { toast } from 'sonner';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
-import { supabase } from '../services/firebaseClient';
+import { supabase } from '../services/supabaseClient';
 import type { Role } from '../types';
 
 interface AdminDashboardProps {
@@ -95,7 +96,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
           const { error } = await supabase.from('profiles').update(updates).eq('id', userId);
           if (error) throw error;
       } catch (err: any) {
-          alert(t('AdminDashboard.alertFailedRole', { message: err.message }));
+          toast.error(t('AdminDashboard.alertFailedRole', { message: err.message }));
           fetchUsers(searchQuery, currentPage);
       }
   };
