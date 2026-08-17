@@ -396,7 +396,7 @@ const App: React.FC = () => {
            <div className="w-full mx-auto px-4 sm:px-6 py-4">
               <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
-                      <img src="/logo.svg" alt="prepareAI logo" className="h-10 w-auto" />
+                      <img src="/logo.png" alt="prepareAI logo" className="h-10 w-auto" />
                       <div>
                         <p className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-gray-400 font-semibold mt-1">
                             {userRole === 'admin' ? 'Admin Mode' : userRole === 'interviewer' ? 'Recruiter Mode' : userRole === 'candidate' ? 'Candidate Mode' : (subscriptionTier === 'pro' ? 'Pro Plan' : 'Free Tier')}
