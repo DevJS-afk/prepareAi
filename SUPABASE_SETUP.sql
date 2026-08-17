@@ -6,6 +6,8 @@ CREATE TABLE public.profiles (
   email text,
   full_name text,
   pronouns text,
+  job_title text,
+  bio text,
   avatar_url text,
   role text DEFAULT 'user',
   is_admin boolean DEFAULT false,
