@@ -186,7 +186,17 @@ This application is built as a unified full-stack app (Express + Vite). It build
 
 ### Hosting options
 
-You can deploy this application to any Node.js hosting provider (e.g., Google Cloud Run, Render, Railway, Heroku).
+You can deploy this application to any Node.js hosting provider (e.g., Google Cloud Run, Render, Railway, Heroku, Vercel).
+
+#### Deploying the Backend to Vercel
+If you prefer to host your Express backend on Vercel (serverless functions), you can do so by creating a `api/index.js` or configuring `vercel.json` to route requests to your `server.ts`. 
+To connect your frontend to the Vercel-hosted backend:
+1. Deploy your backend to Vercel and get your deployment URL (e.g., `https://prepareai-backend.vercel.app`).
+2. In your frontend hosting environment (or local `.env`), add an environment variable to point to your backend:
+   ```env
+   VITE_API_URL=https://prepareai-backend.vercel.app
+   ```
+3. Update your frontend API calls to use this URL instead of relative paths (e.g., `fetch(\`${import.meta.env.VITE_API_URL}/api/endpoint\`)`).
 
 #### Deploying to Google Cloud Run
 1. Install the [Google Cloud CLI](https://cloud.google.com/sdk/docs/install).

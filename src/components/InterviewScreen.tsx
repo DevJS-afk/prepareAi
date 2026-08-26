@@ -552,7 +552,7 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ onEnd, config, isPrac
   const currentConfidenceRef = useRef<number>(85);
   const confidenceTrendRef = useRef<{time: string, confidence: number}[]>([]);
   
-  const { transcription, aiStatus, isConnecting, interviewError: interviewError, endInterview, feedback, aiAudioStream, retry, suspendAudio, resumeAudio } = useInterview(activeConfig!);
+  const { transcription, aiStatus, isConnecting, error: interviewError, endInterview, feedback, aiAudioStream, retry, suspendAudio, resumeAudio } = useInterview(activeConfig!);
 
   const [isRecording, setIsRecording] = useState(false);
   const [isSaving, setIsSaving] = useState(false);

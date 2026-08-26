@@ -431,22 +431,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup, onAbout, o
          </div>
       </section>
 
-      <footer className="w-full border-t border-slate-200/80 dark:border-white/5 py-10 text-center text-slate-500 dark:text-gray-400 text-sm relative z-10 bg-slate-100 dark:bg-black/40 backdrop-blur-md">
-          <div className="mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
-              <div className="flex items-center gap-2">
-                  <img src="/logo.png" alt="prepareAI logo" className="h-6 w-auto opacity-70" />
-                  <span className="font-bold text-slate-900 dark:text-white opacity-70">prepareAI</span>
-                  <span className="ml-2">&copy; {new Date().getFullYear()}. Built by DevJs.</span>
-              </div>
-              <div className="flex gap-8 mt-4 md:mt-0">
-                  <button onClick={onAbout} className="hover:text-slate-900 dark:hover:text-white transition-colors">About</button>
-                  <a href="/privacy" onClick={(e) => { e.preventDefault(); onPrivacy(); }} className="hover:text-slate-900 dark:hover:text-white transition-colors underline underline-offset-2">Privacy Policy</a>
-                  <a href="/terms" onClick={(e) => { e.preventDefault(); onTerms(); }} className="hover:text-slate-900 dark:hover:text-white transition-colors underline underline-offset-2">Terms of Service</a>
-                  <button onClick={onChangelog} className="hover:text-slate-900 dark:hover:text-white transition-colors">Changelog</button>
-                  <a href="#" className="hover:text-slate-900 dark:hover:text-white transition-colors">Twitter</a>
-              </div>
-          </div>
-      </footer>
     </div>
   );
 };

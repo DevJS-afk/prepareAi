@@ -32,6 +32,7 @@ import TermsOfService from './components/TermsOfService';
 import CookieBanner from './components/CookieBanner';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import StarryBackground from './components/StarryBackground';
+import Footer from './components/Footer';
 
 const App: React.FC = () => {
   const { t } = useTranslation();
@@ -400,6 +401,7 @@ const App: React.FC = () => {
               <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
                       <img src="/logo.png" alt="prepareAI logo" className="h-10 w-auto" />
+                      <span className="font-display font-bold text-xl text-slate-900 dark:text-white ml-2">prepareAI</span>
                       <div>
                         <p className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-gray-400 font-semibold mt-1">
                             {userRole === 'admin' ? 'Admin Mode' : userRole === 'interviewer' ? 'Recruiter Mode' : userRole === 'candidate' ? 'Candidate Mode' : (subscriptionTier === 'pro' ? 'Pro Plan' : 'Free Tier')}
@@ -704,9 +706,8 @@ const App: React.FC = () => {
          </Routes>
        </main>
        
-       <footer className="w-full py-6 text-center text-gray-500 text-xs relative z-10">
-          &copy; {new Date().getFullYear()} prepareAI. All rights reserved.
-       </footer>
+       <Footer />
+
        <CookieBanner />
     </div>
   );

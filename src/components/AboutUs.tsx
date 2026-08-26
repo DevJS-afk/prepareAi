@@ -24,8 +24,8 @@ const AboutUs: React.FC<AboutUsProps> = ({ onBack }) => {
           <div className="space-y-8 text-base text-slate-600 dark:text-gray-300 leading-relaxed">
               <p className="text-lg">
                   <Trans i18nKey="AboutUs.mission_intro">
-                    At <strong className="text-brand-blue">prepareAI</strong>, we believe that everyone deserves the chance to land their dream job. 
-                    The interview process is often stressful, opaque, and intimidating. We set out to change that by democratizing access to high-quality interview coaching.
+                    At <strong className="text-brand-blue">prepareAI</strong>, we believe that everyone deserves the chance to land their dream job, regardless of their background or resources. 
+                    The traditional interview process is often stressful, opaque, and intimidating. We set out to fundamentally change that paradigm by democratizing access to high-quality, personalized interview coaching. Our vision is a world where every candidate walks into an interview room with absolute confidence.
                   </Trans>
               </p>
               
@@ -33,21 +33,21 @@ const AboutUs: React.FC<AboutUsProps> = ({ onBack }) => {
                   <div className="absolute top-0 left-0 w-2 h-full bg-brand-purple"></div>
                   <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{t('AboutUs.why_we_built_this')}</h3>
                   <p className="mb-4">
-                      {t('AboutUs.why_description_1')}
+                      {t('AboutUs.why_description_1', "Finding the right talent is equally challenging for companies. We saw a massive disconnect between talented individuals who struggle to showcase their skills under pressure, and recruiters who spend countless hours on initial screening calls without capturing the true potential of the candidates.")}
                   </p>
                   <p>
                       <Trans i18nKey="AboutUs.why_description_2">
-                        By leveraging the power of <strong className="text-slate-900 dark:text-white">Google's Gemini API</strong>, we've created an intelligent, adaptive interviewer that is available 24/7. It doesn't just ask questions; it listens to your tone, evaluates your answers, and provides actionable feedback to help you grow.
+                        By leveraging the incredible power of <strong className="text-slate-900 dark:text-white">Google's Gemini API</strong>, we've created an intelligent, adaptive interviewer that is available 24/7. It doesn't just ask generic questions; it actively listens to your tone, context, and technical depth. It evaluates your answers dynamically, adjusting its persona to challenge you safely, and provides actionable, real-time feedback to help you grow.
                       </Trans>
                   </p>
               </div>
 
               <div className="glass-panel p-8 md:p-10 rounded-2xl border border-brand-green/30 bg-white/80 dark:bg-dark-surface/80 backdrop-blur-md shadow-xl my-10 relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-2 h-full bg-brand-green"></div>
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{t('AboutUs.save_time')}</h3>
+                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{t('AboutUs.save_time', "Empowering Careers")}</h3>
                   <p>
                       <Trans i18nKey="AboutUs.save_time_desc">
-                        Our platform is built for both <strong className="text-slate-900 dark:text-white">job seekers</strong> and <strong className="text-slate-900 dark:text-white">companies</strong> to stop wasting time. By utilizing advanced AI for initial screening and practice, we streamline the hiring process, ensuring candidates are fully prepared and companies connect with the right talent faster.
+                        Our platform is built as a complete ecosystem for career acceleration. Whether you need to generate a tailored CV, write a compelling motivation letter, or practice a rigorous technical system design interview, <strong className="text-slate-900 dark:text-white">prepareAI</strong> is your all-in-one copilot. We aim to save time for both job seekers and companies, ensuring candidates are fully prepared and companies connect with the right talent faster.
                       </Trans>
                   </p>
               </div>
@@ -55,15 +55,15 @@ const AboutUs: React.FC<AboutUsProps> = ({ onBack }) => {
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white pt-8">{t('AboutUs.the_team')}</h2>
               <p>
                   <Trans i18nKey="AboutUs.team_description">
-                    prepareAI is powered by <strong className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow to-brand-red">DevJs</strong>, a team of passionate developers dedicated to building tools that empower individuals. We combine cutting-edge AI research with intuitive UX design to create software that feels like magic.
+                    prepareAI is powered by a dedicated collective of engineers, designers, and AI researchers who are deeply passionate about education and career growth. We combine cutting-edge multimodal AI research with elegant, intuitive UI/UX design to create software that feels entirely frictionless and genuinely helpful.
                   </Trans>
               </p>
 
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white pt-8">{t('AboutUs.technology')}</h2>
               <p>
                   <Trans i18nKey="AboutUs.tech_description">
-                    Our platform utilizes the latest advancements in multimodal AI. 
-                    We use <span className="text-brand-green font-mono">Gemini 2.5 Flash</span> for reasoning and feedback generation, and the <span className="text-brand-blue font-mono">Live API</span> for low-latency, natural voice interaction.
+                    Our platform is proudly built on the bleeding edge of modern web and AI technologies. 
+                    We utilize <span className="text-brand-green font-mono">Gemini 2.5 Flash</span> for deep contextual reasoning and comprehensive feedback generation, seamlessly paired with the <span className="text-brand-blue font-mono">Live API</span> for low-latency, natural voice interaction. The architecture relies on robust cloud infrastructure, ensuring your data is secure and your interview experiences are fluid and uninterrupted.
                   </Trans>
               </p>
           </div>

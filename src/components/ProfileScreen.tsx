@@ -190,6 +190,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
         updated_at: new Date().toISOString(),
       });
       if (error) throw error;
+      toast.success("Profile updated successfully!");
       setIsEditingProfile(false);
     } catch (err: any) {
       console.error("Error updating profile:", err);
@@ -221,6 +222,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
           const { error } = await supabase.auth.updateUser({ password: newPassword });
           if (error) throw error;
           setPasswordMessage({ type: 'success', text: 'Password updated successfully.' });
+          toast.success("Password updated successfully!");
           setNewPassword('');
           setConfirmPassword('');
           setTimeout(() => setIsChangingPassword(false), 2000);
@@ -325,6 +327,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
         });
 
         if (updateError) throw updateError;
+        toast.success("Avatar updated successfully!");
 
     } catch (error: any) {
         if (error.message && (error.message.includes("Bucket not found") || error.statusCode === '404')) {
@@ -417,6 +420,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
           const { error } = await supabase.from(table).delete().eq('id', viewingDoc.id);
           
           if (error) throw error;
+      toast.success("Document deleted successfully!");
 
           // Update local state
           if (viewingDoc.type === 'cv') setSavedCVs(prev => prev.filter(cv => cv.id !== viewingDoc.id));
@@ -464,6 +468,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ session, onBack, onEditCV
 
           const { error } = await supabase.from(table).update(updates).eq('id', viewingDoc.id);
           if (error) throw error;
+      toast.success("Document updated successfully!");
 
           // Update local state list
           if (viewingDoc.type === 'cv') setSavedCVs(prev => prev.map(cv => cv.id === viewingDoc.id ? { ...cv, ...updates } : cv));
