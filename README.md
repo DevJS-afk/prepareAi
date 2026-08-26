@@ -189,14 +189,51 @@ This application is built as a unified full-stack app (Express + Vite). It build
 You can deploy this application to any Node.js hosting provider (e.g., Google Cloud Run, Render, Railway, Heroku, Vercel).
 
 #### Deploying the Backend to Vercel
-If you prefer to host your Express backend on Vercel (serverless functions), you can do so by creating a `api/index.js` or configuring `vercel.json` to route requests to your `server.ts`. 
-To connect your frontend to the Vercel-hosted backend:
+Vercel is primarily built for frontend hosting, but you can securely deploy your Express backend using Vercel Serverless Functions.
+
+**Step 1: Configure Vercel Routing**
+Create a `vercel.json` file in your root directory to instruct Vercel to route `/api/*` traffic to your Express server:
+```json
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/backend/server.ts"
+    }
+  ]
+}
+```
+
+**Step 2: Export your Express App**
+Ensure your `backend/server.ts` exports the Express app instead of only listening to a port. Vercel needs to import the app directly. Modify the bottom of your `server.ts` file like this:
+```typescript
+// Only call app.listen if we are NOT running in a Vercel serverless environment
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// Export the app for Vercel
+export default app;
+```
+
+**Step 3: Link Frontend and Backend**
+If you deploy your frontend and backend as separate projects, or if you need absolute URLs, you must link your frontend to your backend domain.
 1. Deploy your backend to Vercel and get your deployment URL (e.g., `https://prepareai-backend.vercel.app`).
-2. In your frontend hosting environment (or local `.env`), add an environment variable to point to your backend:
+2. In your frontend hosting environment settings (e.g., Vercel's Environment Variables dashboard) or local `.env`, add:
    ```env
    VITE_API_URL=https://prepareai-backend.vercel.app
    ```
-3. Update your frontend API calls to use this URL instead of relative paths (e.g., `fetch(\`${import.meta.env.VITE_API_URL}/api/endpoint\`)`).
+3. Ensure your frontend API calls use this URL. Instead of using hardcoded relative paths like `fetch("/api/generate-report")`, you should construct the URL dynamically:
+   ```typescript
+   const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+   fetch(`${API_BASE_URL}/api/generate-report`)
+   ```
+
+**Step 4: Deploy**
+Push your code to a GitHub repository and import it into Vercel. Vercel will automatically build the Vite frontend and turn your `backend/server.ts` into a serverless API endpoint based on your `vercel.json` rules.
 
 #### Deploying to Google Cloud Run
 1. Install the [Google Cloud CLI](https://cloud.google.com/sdk/docs/install).
