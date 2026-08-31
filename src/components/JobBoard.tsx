@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { JobOffer } from '../types';
 import { supabase } from '../services/supabaseClient';
 import ReactMarkdown from 'react-markdown';
+import { fetchJobsFrontEnd } from '../services/jobService';
 
 interface JobBoardProps {
   onBack: () => void;
@@ -27,23 +28,19 @@ const JobBoard: React.FC<JobBoardProps> = ({ onBack }) => {
     setIsLoading(true);
     setError(null);
     try {
-      // 1. Fetch scraped jobs from backend proxy
-      const qs = new URLSearchParams({ q, l, c, level, type });
+      // 1. Fetch scraped jobs from frontend logic
       let scrapedJobs: any[] = [];
       try {
-        const res = await fetch(`/api/jobs?${qs.toString()}`);
-        if (res.ok) {
-          const data = await res.json();
-          scrapedJobs = (data.jobs || []).map((j: any) => ({
-            title: j.title,
-            company: j.company,
-            url: j.link || j.url,
-            location: j.location,
-            platform: j.platform || "Web"
-          }));
-        }
+        const jobsResult = await fetchJobsFrontEnd(q, l, c, level, type);
+        scrapedJobs = (jobsResult || []).map((j: any) => ({
+          title: j.title,
+          company: j.company,
+          url: j.link || j.url,
+          location: j.location,
+          platform: j.platform || "Web"
+        }));
       } catch (err) {
-        console.warn("Backend jobs scraper failed or returned error, using fallback empty array", err);
+        console.warn("Frontend jobs scraper failed or returned error, using fallback empty array", err);
       }
 
       // 2. Fetch custom recruiter jobs from Firestore

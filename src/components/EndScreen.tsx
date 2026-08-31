@@ -6,6 +6,7 @@ import { supabase } from '../services/supabaseClient';
 import type { TranscriptionEntry, FeedbackEntry, InterviewConfig, SuggestedResource, InterviewReport, JobOffer } from '../types';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { useTranslation } from 'react-i18next';
+import { fetchJobsFrontEnd } from '../services/jobService';
 
 interface EndScreenProps {
   onRestart: () => void;
@@ -156,16 +157,13 @@ const EndScreen: React.FC<EndScreenProps> = ({
 
         let receivedJobOffers: JobOffer[] = [];
         try {
-            const jobRes = await fetch(`/api/jobs?q=${encodeURIComponent(config.name)}&l=Remote`);
-            if (jobRes.ok) {
-                const jobData = await jobRes.json();
-                receivedJobOffers = (jobData.jobs || []).slice(0, 3).map((j: any) => ({
-                    title: j.title || t('EndScreen.jobListing'),
-                    company: j.company || t('EndScreen.unknownCompany'),
-                    url: j.link || j.url || "#",
-                    location: j.location || t('EndScreen.remote')
-                }));
-            }
+            const jobData = await fetchJobsFrontEnd(config.name, "Remote");
+            receivedJobOffers = (jobData || []).slice(0, 3).map((j: any) => ({
+                title: j.title || t('EndScreen.jobListing'),
+                company: j.company || t('EndScreen.unknownCompany'),
+                url: j.link || j.url || "#",
+                location: j.location || t('EndScreen.remote')
+            }));
         } catch (jobErr) {
             console.error("Error fetching job offers:", jobErr);
         }
