@@ -18,20 +18,24 @@ const JobBoard: React.FC<JobBoardProps> = ({ onBack }) => {
   const [companyQuery, setCompanyQuery] = useState("");
   const [levelQuery, setLevelQuery] = useState("");
   const [typeQuery, setTypeQuery] = useState("");
+  const [startOffset, setStartOffset] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Modal Detail State
   const [selectedJob, setSelectedJob] = useState<JobOffer | null>(null);
   const [hasApplied, setHasApplied] = useState(false);
   const [applying, setApplying] = useState(false);
 
-  const fetchJobs = async (q: string, l: string, c: string, level: string, type: string) => {
-    setIsLoading(true);
+  const fetchJobs = async (q: string, l: string, c: string, level: string, type: string, isLoadMore: boolean = false) => {
+    if (isLoadMore) setIsLoadingMore(true); else setIsLoading(true);
     setError(null);
     try {
       // 1. Fetch scraped jobs from frontend logic
       let scrapedJobs: any[] = [];
       try {
-        const jobsResult = await fetchJobsFrontEnd(q, l, c, level, type);
+        const newStartOffset = isLoadMore ? startOffset + 30 : 0;
+        const jobsResult = await fetchJobsFrontEnd(q, l, c, level, type, newStartOffset);
+        if (isLoadMore) setStartOffset(newStartOffset); else setStartOffset(0);
         scrapedJobs = (jobsResult || []).map((j: any) => ({
           title: j.title,
           company: j.company,
@@ -87,12 +91,17 @@ const JobBoard: React.FC<JobBoardProps> = ({ onBack }) => {
       });
 
       // Show recruiter posted jobs at the very beginning to prioritize direct positions!
-      setJobs([...filteredFirestoreJobs, ...scrapedJobs]);
+      if (isLoadMore) {
+        setJobs(prev => [...prev, ...scrapedJobs]);
+      } else {
+        setJobs([...filteredFirestoreJobs, ...scrapedJobs]);
+      }
     } catch (err: any) {
       console.error(err);
       setError("Could not load jobs at this time. Please try again.");
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
@@ -102,7 +111,11 @@ const JobBoard: React.FC<JobBoardProps> = ({ onBack }) => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchJobs(searchQuery, locationQuery, companyQuery, levelQuery, typeQuery);
+    fetchJobs(searchQuery, locationQuery, companyQuery, levelQuery, typeQuery, false);
+  };
+
+  const handleLoadMore = () => {
+    fetchJobs(searchQuery, locationQuery, companyQuery, levelQuery, typeQuery, true);
   };
 
   const openJobDetails = (job: JobOffer) => {
@@ -297,6 +310,22 @@ const JobBoard: React.FC<JobBoardProps> = ({ onBack }) => {
                   </div>
               ))}
           </div>
+      )}
+
+      {jobs.length > 0 && !isLoading && (
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={handleLoadMore}
+            disabled={isLoadingMore}
+            className="px-6 py-3 bg-brand-purple hover:bg-purple-600 text-white font-bold rounded-xl transition-all disabled:opacity-50 flex items-center gap-2"
+          >
+            {isLoadingMore ? (
+              <><span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Loading...</>
+            ) : (
+              "Load More Jobs"
+            )}
+          </button>
+        </div>
       )}
 
       {/* Recruiter Job Details Modal */}
